@@ -1,4 +1,12 @@
-/data
+/data/
+__MACOSX/
 .DS_Store
+
 __pycache__/
+*.py[cod]
+
+*.pth
+
 .vscode/
+
+test.py
