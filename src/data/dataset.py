@@ -26,14 +26,13 @@ class SegmentationDataset(data.Dataset):
 
     def __getitem__(self, idx: int) -> tuple[Tensor, Tensor]:
         img_path = os.path.join(self.img_dir, f'{self.img_idx[idx]}.jpg')
-        print(self.img_idx[idx], idx)
         mask_path = os.path.join(self.mask_dir, f'{self.img_idx[idx]}.png')
         img = Image.open(img_path)
         mask = Image.open(mask_path)
         if self.img_transforms:
             img = self.img_transforms(img)
         if self.mask_transforms:
-            self.mask_transforms(mask)
+            mask = self.mask_transforms(mask)
         return img, mask
 
 

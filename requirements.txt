@@ -8,3 +8,5 @@ torchvision==0.22.0; sys_platform == "darwin"
 
 torch==2.7.0+cu128; sys_platform != "darwin"
 torchvision==0.22.0+cu128; sys_platform != "darwin"
+
+pyyaml
