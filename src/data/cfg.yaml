@@ -1,0 +1,7 @@
+data:
+  train_images: "data/bdd100k/images/10k/train/"
+  train_masks:  "data/bdd100k/labels/sem_seg/colormaps/train/"
+  val_images:   "data/bdd100k/images/10k/val/"
+  val_masks:    "data/bdd100k/labels/sem_seg/colormaps/val/"
+  test_images:   "data/bdd100k/images/10k/test/"
+batch_size: 8
