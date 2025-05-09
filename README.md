@@ -3,7 +3,7 @@
 `WOW`
 
 ### Rules for running files and imports so that it consistently works!!!
-- Always use absolute imports -> `from src.data.dataset import SegmentationDataset``
+- Always use absolute imports -> `from src.data.dataset import SegmentationDataset`
 - Always run files from the root of the directory!
 - Run them like this and it will always work -> `python -m src.utils.calculate_means` (no `.py`)
 - If you want your VSCode play button to work, set this in `.vscode/launch.json` in the root of the project:
@@ -15,4 +15,4 @@
 
 ### Other
 - Please also install and configure Isort plugin to sort imports nicely :)
-- Hyperparameters should be stored in cfg.yaml in the future, there is a read_config function in utils/
+- Hyperparameters should be stored in cfg.yaml in the future, there is a read_config function in utils/ dir.

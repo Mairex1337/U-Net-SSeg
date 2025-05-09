@@ -1,7 +1,9 @@
 import os
+
 import torch.utils.data as data
-from torch import Tensor
 from PIL import Image
+from torch import Tensor
+
 
 class SegmentationDataset(data.Dataset):
     def __init__(
