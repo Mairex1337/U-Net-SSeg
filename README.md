@@ -15,4 +15,13 @@
 
 ### Other
 - Please also install and configure Isort plugin to sort imports nicely :)
+    - Put this into your settings.json after installing:
+```json
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+    }
+  }
+```
 - Hyperparameters should be stored in cfg.yaml in the future, there is a read_config function in utils/ dir.
