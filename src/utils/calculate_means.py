@@ -18,10 +18,11 @@ def calculate_mean_std() -> None:
         transforms.Resize((456,256)),
         transforms.ToTensor()
     ])
+    cfg = read_config()
 
     train_dataset = SegmentationDataset(
-        read_config()['data']['train_images'],
-        read_config()['data']['train_masks'], 
+        cfg['data']['train_images'],
+        cfg['data']['train_masks'], 
         img_transforms=transform,
         mask_transforms=transform
     )
