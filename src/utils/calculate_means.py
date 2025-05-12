@@ -43,18 +43,19 @@ def calculate_mean_std() -> None:
     var = (channel_sqr_sums / total_pixels) - (mean ** 2)
     std = torch.sqrt(var)
     
-    mean = mean.tolist()
-    std = std.tolist()
 
     path = resolve_path(cfg.yaml, 2)
 
     with open(path, 'r') as f:
         cfg = yaml.unsafe_load(f)
 
-    cfg['normalization'] = {'mean': deepcopy(mean), 'std': deepcopy(std)}
+    cfg['transforms']['img']['normalize'] = {
+        'mean':deepcopy(mean).tolist(),
+        'std': deepcopy(std).tolist(),
+    }
     
     with open(path, 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
+        yaml.dump(cfg, f, default_flow_style=True)
 
 if __name__ == '__main__': 
     calculate_mean_std()

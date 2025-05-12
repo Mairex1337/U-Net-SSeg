@@ -4,13 +4,13 @@ data:
   val_images: data/bdd100k/images/val/
   val_masks: data/bdd100k/labels/sem_seg/colormaps/val/
   test_images: data/bdd100k/images/test/
-normalization:
-  mean:
-  - 0.3701710104942322
-  - 0.41445785760879517
-  - 0.42446279525756836
-  std:
-  - 0.24812856316566467
-  - 0.26523593068122864
-  - 0.282775342464447
-batch_size: 8
+transforms:
+  img:
+    resize: [456, 256]
+    normalize:
+      mean: [0.3701710104942322, 0.41445785760879517, 0.42446279525756836]
+      std: [0.24812856316566467, 0.26523593068122864, 0.282775342464447]
+  mask:
+    resize: [456, 256]
+hyperparams:
+  batch_size: 8

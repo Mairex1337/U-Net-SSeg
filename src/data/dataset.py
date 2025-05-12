@@ -15,6 +15,7 @@ class SegmentationDataset(data.Dataset):
             img_transforms: list = None, # These typehints are still not correct
             mask_transforms = None
     ) -> None:
+        #TODO: need fix for test set where we have no masks
         self.img_transforms = img_transforms
         self.mask_transforms = mask_transforms
         self.img_dir = resolve_path(img_dir)
