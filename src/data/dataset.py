@@ -15,8 +15,8 @@ class SegmentationDataset(data.Dataset):
     ) -> None:
         self.img_transforms = img_transforms
         self.mask_transforms = mask_transforms
-        self.img_dir = self.resolve_path(img_dir)
-        self.mask_dir = self.resolve_path(mask_dir)
+        self.img_dir = img_dir
+        self.mask_dir = mask_dir
         self.img_idx = sorted([
             os.path.splitext(f)[0] for f in os.listdir(self.img_dir)
         ])
@@ -38,15 +38,3 @@ class SegmentationDataset(data.Dataset):
 
     def __len__(self) -> int:
         return len(self.img_idx)
-    
-    def resolve_path(self, path: str) -> str:
-        # This will resolve OS agnostically
-        # absolute path to root of repo
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        abs_path = os.path.join(project_root, *path.split('/'))
-        if not os.path.exists(abs_path):
-            raise FileNotFoundError(
-                f"Resolved path does not exist: {abs_path}.",
-                "Check cfg.yaml for appropriate /data dir structure."
-            )
-        return abs_path

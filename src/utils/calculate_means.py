@@ -1,4 +1,3 @@
-import os
 from copy import deepcopy
 
 import torch
@@ -8,6 +7,7 @@ from torch.utils.data import DataLoader
 
 from src.data.dataset import SegmentationDataset
 from src.utils.read_config import read_config
+from src.utils.resolve_path import resolve_path
 
 
 def calculate_mean_std() -> None:
@@ -21,8 +21,8 @@ def calculate_mean_std() -> None:
     cfg = read_config()
 
     train_dataset = SegmentationDataset(
-        cfg['data']['train_images'],
-        cfg['data']['train_masks'], 
+        resolve_path(cfg['data']['train_images'], 2),
+        resolve_path(cfg['data']['train_masks'], 2), 
         img_transforms=transform,
         mask_transforms=transform
     )
@@ -46,14 +46,14 @@ def calculate_mean_std() -> None:
     mean = mean.tolist()
     std = std.tolist()
 
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    path = resolve_path(cfg.yaml, 2)
 
-    with open(os.path.join(project_root, 'cfg.yaml'), 'r') as f:
+    with open(path, 'r') as f:
         cfg = yaml.unsafe_load(f)
 
     cfg['normalization'] = {'mean': deepcopy(mean), 'std': deepcopy(std)}
     
-    with open(os.path.join(project_root, 'cfg.yaml'), 'w') as f:
+    with open(path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
 
 if __name__ == '__main__': 
