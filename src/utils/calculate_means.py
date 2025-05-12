@@ -21,8 +21,8 @@ def calculate_mean_std() -> None:
     cfg = read_config()
 
     train_dataset = SegmentationDataset(
-        cfg['data']['train_images'],
-        cfg['data']['train_masks'], 
+        resolve_path(cfg['data']['train_images'], 2),
+        resolve_path(cfg['data']['train_masks'], 2), 
         img_transforms=transform,
         mask_transforms=transform
     )

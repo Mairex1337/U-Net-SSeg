@@ -4,8 +4,6 @@ import torch.utils.data as data
 from PIL import Image
 from torch import Tensor
 
-from src.utils.resolve_path import resolve_path
-
 
 class SegmentationDataset(data.Dataset):
     def __init__(
@@ -17,8 +15,8 @@ class SegmentationDataset(data.Dataset):
     ) -> None:
         self.img_transforms = img_transforms
         self.mask_transforms = mask_transforms
-        self.img_dir = resolve_path(img_dir)
-        self.mask_dir = resolve_path(mask_dir)
+        self.img_dir = img_dir
+        self.mask_dir = mask_dir
         self.img_idx = sorted([
             os.path.splitext(f)[0] for f in os.listdir(self.img_dir)
         ])
