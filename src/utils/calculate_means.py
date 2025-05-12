@@ -12,7 +12,8 @@ from src.utils.resolve_path import resolve_path
 
 def calculate_mean_std() -> None:
     """
-    
+    Compute per-channel mean and standard deviation from the training dataset,
+    then write the values to the 'normalize' section of cfg.yaml.
     """
     cfg = read_config()
     
