@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F # allows us to use activation functions like ReLU in line.
+from src.data.dataset import SegmentationDataset
 
 class BaselineModel(nn.Module):
     """
@@ -45,6 +45,14 @@ class BaselineModel(nn.Module):
         logits = logits.permute(0, 3, 1, 2)
         return logits
     
+# fill out the path and transforms
+dataset = SegmentationDataset(
+    img_dir='',
+    mask_dir='',
+    img_transforms=x,
+    mask_transforms=y
+)
+data = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
 
 
 model = BaselineModel()
