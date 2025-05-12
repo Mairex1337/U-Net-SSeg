@@ -14,17 +14,17 @@ def calculate_mean_std() -> None:
     """
     
     """
+    cfg = read_config()
+    
     transform = transforms.Compose([
-        transforms.Resize((456,256)),
+        transforms.Resize(cfg["transforms"]["img"]["resize"]),
         transforms.ToTensor()
     ])
-    cfg = read_config()
 
     train_dataset = SegmentationDataset(
         cfg['data']['train_images'],
         cfg['data']['train_masks'], 
-        img_transforms=transform,
-        mask_transforms=transform
+        transforms=transform,
     )
     train_loader = DataLoader(train_dataset)
 
@@ -43,19 +43,18 @@ def calculate_mean_std() -> None:
     var = (channel_sqr_sums / total_pixels) - (mean ** 2)
     std = torch.sqrt(var)
     
-
-    path = resolve_path(cfg.yaml, 2)
+    path = resolve_path("cfg.yaml", 2)
 
     with open(path, 'r') as f:
         cfg = yaml.unsafe_load(f)
 
-    cfg['transforms']['img']['normalize'] = {
+    cfg['transforms']['normalize'] = {
         'mean':deepcopy(mean).tolist(),
         'std': deepcopy(std).tolist(),
     }
     
     with open(path, 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=True)
+        yaml.dump(cfg, f, default_flow_style=False)
 
 if __name__ == '__main__': 
     calculate_mean_std()
