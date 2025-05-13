@@ -1,16 +1,14 @@
 data:
-  train_images: data/bdd100k/images/train/
-  train_masks: data/bdd100k/labels/sem_seg/colormaps/train/
-  val_images: data/bdd100k/images/val/
-  val_masks: data/bdd100k/labels/sem_seg/colormaps/val/
-  test_images: data/bdd100k/images/test/
-normalization:
-  mean:
-  - 0.3701710104942322
-  - 0.41445785760879517
-  - 0.42446279525756836
-  std:
-  - 0.24812856316566467
-  - 0.26523593068122864
-  - 0.282775342464447
-batch_size: 8
+  train_images: data/bdd100k/images/10k/train/
+  train_masks: data/bdd100k/labels/sem_seg/masks/train/
+  val_images: data/bdd100k/images/10k/val/
+  val_masks: data/bdd100k/labels/sem_seg/masks/val/
+  test_images: data/bdd100k/images/10k/test/
+transforms:
+  resize: [256, 448]
+  normalize:
+    mean: [0.3701630234718323, 0.41444894671440125, 0.4244552254676819]
+    std: [0.24810604751110077, 0.2652149200439453, 0.28275322914123535]
+  flip: 0.5
+hyperparams:
+  batch_size: 8
