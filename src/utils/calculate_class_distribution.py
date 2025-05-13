@@ -1,9 +1,5 @@
 import os
-from copy import deepcopy
-import sys
-sys.path.append(r"C:\Users\daand\RUG\applied ml\project\U-Net-SSeg") 
 
-import torch
 import torchvision.transforms as transforms
 import yaml
 from torch.utils.data import DataLoader
@@ -15,9 +11,10 @@ from src.utils.read_config import read_config
 
 def calculate_class_distribution():
     """
+    Calculates the class distribution for the given training set. 
+    Saves distribution to cfg.yaml.
     """
     
-    #ids are from the label.py in the bdd100k
     colormap_id = {
         0: "road",
         1: "sidewalk",
@@ -53,21 +50,23 @@ def calculate_class_distribution():
         img_transforms=transform,
         mask_transforms=transform
     )
+    
     train_loader = DataLoader(train_dataset)
     pixel_counts = defaultdict(int)
     
     for _ , masks in train_loader:
         unique, counts = np.unique(masks, return_counts=True)
-        for c, count in zip(unique, counts):
-            c = int(c*255)
-            if c in colormap_id.keys():
-                pixel_counts[colormap_id[c]] += count
-    
-    average_pixel_counts = {c: int(total / len(train_loader)) for c, total in pixel_counts.items()}
+        for class_mask , count in zip(unique, counts):
+            class_mask = int(class_mask*255) #get class ids
+            if class_mask in colormap_id.keys():
+                pixel_counts[colormap_id[class_mask]] += count
+
+    total_pixels_dataset = sum(pixel_counts.values())
+    class_distribution = {class_name: float(total_pixels_dataset / total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
     
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     
-    cfg['class_distribution'] = average_pixel_counts
+    cfg['class_distribution'] = class_distribution
     
     with open(os.path.join(project_root, 'cfg.yaml'), 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)

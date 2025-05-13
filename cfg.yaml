@@ -1,9 +1,30 @@
+batch_size: 8
+class_distribution:
+  bicycle: 1572.7307974036335
+  building: 6.119684633149637
+  bus: 145.68361540676753
+  car: 9.970686301763262
+  fence: 78.43704122741086
+  motorcycle: 3353.5986617935882
+  person: 321.2291040199561
+  pole: 86.41383746810128
+  rider: 3912.296485615318
+  road: 3.809630552807078
+  sidewalk: 39.82022102596534
+  sky: 4.693370238247236
+  terrain: 78.53867387207369
+  traffic light: 451.3438707591636
+  traffic sign: 238.20067179852197
+  train: 5905.342465007353
+  truck: 83.39406701336857
+  vegetation: 6.1379696539911
+  wall: 169.16301216520338
 data:
-  train_images: data/bdd100k/images/train/
+  test_images: data/bdd100k/images/test/
+  train_images: data/bdd100k/images/10k/train
   train_masks: data/bdd100k/labels/sem_seg/colormaps/train/
   val_images: data/bdd100k/images/val/
   val_masks: data/bdd100k/labels/sem_seg/colormaps/val/
-  test_images: data/bdd100k/images/test/
 normalization:
   mean:
   - 0.3701710104942322
@@ -13,4 +34,3 @@ normalization:
   - 0.24812856316566467
   - 0.26523593068122864
   - 0.282775342464447
-batch_size: 8
