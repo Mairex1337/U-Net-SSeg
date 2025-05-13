@@ -1,4 +1,3 @@
-import os
 from copy import deepcopy
 
 import torch
@@ -8,23 +7,25 @@ from torch.utils.data import DataLoader
 
 from src.data.dataset import SegmentationDataset
 from src.utils.read_config import read_config
+from src.utils.resolve_path import resolve_path
 
 
 def calculate_mean_std() -> None:
     """
-    
+    Compute per-channel mean and standard deviation from the training dataset,
+    then write the values to the 'normalize' section of cfg.yaml.
     """
+    cfg = read_config()
+    
     transform = transforms.Compose([
-        transforms.Resize((456,256)),
+        transforms.Resize(cfg["transforms"]["img"]["resize"]),
         transforms.ToTensor()
     ])
-    cfg = read_config()
 
     train_dataset = SegmentationDataset(
         cfg['data']['train_images'],
         cfg['data']['train_masks'], 
-        img_transforms=transform,
-        mask_transforms=transform
+        transforms=transform,
     )
     train_loader = DataLoader(train_dataset)
 
@@ -43,17 +44,17 @@ def calculate_mean_std() -> None:
     var = (channel_sqr_sums / total_pixels) - (mean ** 2)
     std = torch.sqrt(var)
     
-    mean = mean.tolist()
-    std = std.tolist()
+    path = resolve_path("cfg.yaml", 2)
 
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-    with open(os.path.join(project_root, 'cfg.yaml'), 'r') as f:
+    with open(path, 'r') as f:
         cfg = yaml.unsafe_load(f)
 
-    cfg['normalization'] = {'mean': deepcopy(mean), 'std': deepcopy(std)}
+    cfg['transforms']['normalize'] = {
+        'mean':deepcopy(mean).tolist(),
+        'std': deepcopy(std).tolist(),
+    }
     
-    with open(os.path.join(project_root, 'cfg.yaml'), 'w') as f:
+    with open(path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
 
 if __name__ == '__main__': 
