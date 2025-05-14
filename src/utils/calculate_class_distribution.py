@@ -1,4 +1,5 @@
-import os
+import sys
+sys.path.append(r"C:\Users\daand\RUG\applied ml\project\U-Net-SSeg")
 
 import torchvision.transforms as transforms
 import yaml
@@ -8,8 +9,10 @@ from collections import defaultdict
 
 from src.data.dataset import SegmentationDataset
 from src.utils.read_config import read_config
+from src.data.transforms import ToTensor, Resize, Compose
+from src.utils.resolve_path import resolve_path
 
-def calculate_class_distribution():
+def calculate_class_distribution() -> None:
     """
     Calculates the class distribution for the given training set. 
     Saves distribution to cfg.yaml.
@@ -37,18 +40,18 @@ def calculate_class_distribution():
         18: "bicycle",
     }
     
-    transform = transforms.Compose([
-        transforms.Resize((256,448)),
-        transforms.ToTensor()
-    ])
-    
     cfg = read_config()
+    print(tuple(cfg["transforms"]["resize"]))
+    
+    transform = Compose([
+        Resize(cfg["transforms"]["resize"]),
+        ToTensor()
+    ])
 
     train_dataset = SegmentationDataset(
         cfg['data']['train_images'],
         cfg['data']['train_masks'], 
-        img_transforms=transform,
-        mask_transforms=transform
+        transforms=transform,
     )
     
     train_loader = DataLoader(train_dataset)
@@ -57,18 +60,16 @@ def calculate_class_distribution():
     for _ , masks in train_loader:
         unique, counts = np.unique(masks, return_counts=True)
         for class_mask , count in zip(unique, counts):
-            class_mask = int(class_mask*255) #get class ids
             if class_mask in colormap_id.keys():
                 pixel_counts[colormap_id[class_mask]] += count
 
-    total_pixels_dataset = sum(pixel_counts.values())
-    class_distribution = {class_name: float(total_pixels_dataset / total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
+    class_distribution = {class_name: int(total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
     
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    path = resolve_path("cfg.yaml", 2)
     
     cfg['class_distribution'] = class_distribution
     
-    with open(os.path.join(project_root, 'cfg.yaml'), 'w') as f:
+    with open(path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
     
 if __name__ == '__main__': 
