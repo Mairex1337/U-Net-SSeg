@@ -1,6 +1,3 @@
-import sys
-sys.path.append(r'C:\Users\daand\RUG\applied ml\project\U-Net-SSeg')
-
 import torchvision.transforms as transforms
 import yaml
 from torch.utils.data import DataLoader
