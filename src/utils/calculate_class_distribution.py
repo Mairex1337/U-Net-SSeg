@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r'C:\Users\daand\RUG\applied ml\project\U-Net-SSeg')
+
 import torchvision.transforms as transforms
 import yaml
 from torch.utils.data import DataLoader
@@ -38,7 +41,6 @@ def calculate_class_distribution() -> None:
     }
     
     cfg = read_config()
-    print(tuple(cfg["transforms"]["resize"]))
     
     transform = Compose([
         Resize(cfg["transforms"]["resize"]),
@@ -60,11 +62,13 @@ def calculate_class_distribution() -> None:
             if class_mask in colormap_id.keys():
                 pixel_counts[colormap_id[class_mask]] += count
 
+    total_pixels = int(sum(pixel_counts.values()))
     class_distribution = {class_name: int(total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
     
     path = resolve_path("cfg.yaml", 2)
     
-    cfg['class_distribution'] = class_distribution
+    cfg['class_distribution']['total_pixels'] = total_pixels
+    cfg['class_distribution']['class_frequencies'] = class_distribution
     
     with open(path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
