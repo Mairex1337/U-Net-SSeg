@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from src.data.dataset import SegmentationDataset
+import torch.nn.functional as F
 
 class BaselineModel(nn.Module):
     """
@@ -32,38 +32,15 @@ class BaselineModel(nn.Module):
                               """
         B, C, H, W = x.shape
         # reshape the input tensor
-        x = x.permute(0, 2, 3, 1) # reorder the dimensions (B, H, W, C)
-        x= x.reshape(-1, C) # flatten spatial dimensions, shape (B*H*W, C)
+        x = x.permute(0, 2, 3, 1)
+        x= x.reshape(-1, C)
 
         # apply the fully connected layers
-        x = F.relu(self.layer1(x)) # apply relu to make negative values zero, introduces non-linearity
+        x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
-        logits = self.layer3(x)  # (B*H*W, 19) # no RelU here, for cross entropy loss
+        logits = self.layer3(x)
 
         # reshape back to original dimensions
         logits = logits.view(B, H, W, -1) 
         logits = logits.permute(0, 3, 1, 2)
         return logits
-    
-# fill out the path and transforms
-dataset = SegmentationDataset(
-    img_dir='',
-    mask_dir='',
-    img_transforms=x,
-    mask_transforms=y
-)
-data = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
-
-
-model = BaselineModel()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-loss = nn.CrossEntropyLoss()
-
-for images, masks in data: # replace data with our data thingy
-    # images: (B, 3, H, W), masks: (B, H, W)
-    logits = model(images)  # (B, 19, H, W)
-    loss = loss(logits, masks)
-
-    optimizer.zero_grad() # clear previous gradients
-    loss.backward() # compute gradients
-    optimizer.step() # update weights
