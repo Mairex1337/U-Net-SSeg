@@ -2,18 +2,17 @@ import os
 
 import torch.utils.data as data
 from PIL import Image
+from src.data.transforms import Compose
+from src.utils.resolve_path import resolve_path
 from torch import Tensor
 from torchvision.transforms.functional import pil_to_tensor, to_tensor
-
-from src.data.transforms import Compose
-from src.utils import resolve_path
 
 
 class SegmentationDataset(data.Dataset):
     """
     A PyTorch Dataset for semantic segmentation tasks.
 
-    Loads images and masks from, applies transforms, 
+    Loads images and masks from, applies transforms,
     and returns them as tensors.
 
     Args:
@@ -31,7 +30,7 @@ class SegmentationDataset(data.Dataset):
             img_dir: str,
             mask_dir: str,
             transforms: Compose,
-            debug: bool = False 
+            debug: bool = False
     ) -> None:
         self.transforms = transforms
         self.img_dir = resolve_path(img_dir)
@@ -63,6 +62,9 @@ class SegmentationDataset(data.Dataset):
         mask = Image.open(mask_path)
         if self.transforms:
             img_t, mask_t = self.transforms(img, mask)
+        else:
+            img_t  = img
+            mask_t = mask
         if self.debug:
             return img_t, mask_t, to_tensor(img), pil_to_tensor(mask)
         return img_t, mask_t

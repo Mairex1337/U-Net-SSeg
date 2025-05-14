@@ -13,3 +13,4 @@ pyyaml
 matplotlib
 tqdm
 argparse
+pytest
