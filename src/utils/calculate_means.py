@@ -1,13 +1,11 @@
-from copy import deepcopy
-
 import torch
-import torchvision.transforms as transforms
 import yaml
 from torch.utils.data import DataLoader
 
 from src.data.dataset import SegmentationDataset
 from src.utils.read_config import read_config
 from src.utils.resolve_path import resolve_path
+from src.data.transforms import ToTensor, Resize, Compose
 
 
 def calculate_mean_std() -> None:
@@ -17,9 +15,9 @@ def calculate_mean_std() -> None:
     """
     cfg = read_config()
     
-    transform = transforms.Compose([
-        transforms.Resize(cfg["transforms"]["img"]["resize"]),
-        transforms.ToTensor()
+    transform = Compose([
+        Resize(cfg["transforms"]["resize"]),
+        ToTensor()
     ])
 
     train_dataset = SegmentationDataset(
@@ -46,12 +44,9 @@ def calculate_mean_std() -> None:
     
     path = resolve_path("cfg.yaml", 2)
 
-    with open(path, 'r') as f:
-        cfg = yaml.unsafe_load(f)
-
     cfg['transforms']['normalize'] = {
-        'mean':deepcopy(mean).tolist(),
-        'std': deepcopy(std).tolist(),
+        'mean':mean.tolist(),
+        'std': std.tolist(),
     }
     
     with open(path, 'w') as f:
