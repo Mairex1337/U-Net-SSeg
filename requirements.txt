@@ -11,3 +11,4 @@ torchvision==0.22.0+cu128; sys_platform != "darwin"
 
 pyyaml
 matplotlib
+tqdm
