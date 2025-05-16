@@ -110,7 +110,6 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
             path (str): The file path requested.
             up (int): How many directory levels to go up (ignored here for testing).
 
-
         Returns:
             str: The appropriate path to use for config or data access.
         """
