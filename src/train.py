@@ -1,6 +1,5 @@
 import argparse
 import os
-import shutil
 from typing import Literal
 
 import torch
@@ -29,8 +28,7 @@ def train(model_name: Literal['baseline', 'unet']):
         hyperparams['input_dim'],
         hyperparams['hidden_dim'],
         hyperparams['num_classes']
-    )
-    model = model.to(device)
+    ).to(device)
 
     train_loader = get_dataloader(
         cfg,
@@ -66,7 +64,6 @@ def train(model_name: Literal['baseline', 'unet']):
             trainer.best_checkpoint = epoch
             trainer.best_val_loss = val_loss
     
-    run_id = int(cfg['runs'][model_name])
     trainer.determine_best_checkpoint()
 
     # save copy of cfg.yaml in run dir
@@ -74,6 +71,7 @@ def train(model_name: Literal['baseline', 'unet']):
         yaml.dump(cfg, f, default_flow_style=False)
 
     # increment run_id
+    run_id = int(cfg['runs'][model_name])
     cfg['runs'][model_name] = str(run_id + 1)
     cfg_path = resolve_path('cfg.yaml', 2)
 
