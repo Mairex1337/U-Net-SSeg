@@ -30,7 +30,7 @@ class RandomHorizontalFlip:
         if random.random() < self.p:
             return F.hflip(img), F.hflip(mask)
         return img, mask
-    
+
 
 class ColorJitter:
     """Apply color jitter to the image only."""
@@ -191,5 +191,24 @@ def get_val_transforms(cfg: Dict[str, Any]) -> Compose:
         Resize(cfg["resize"]),
         ToTensor(),
         Normalize(cfg["normalize"]["mean"], cfg["normalize"]["std"]),
+    ]
+    return Compose(operations)
+
+
+def get_stats_transforms(cfg: Dict[str, Any]) -> Compose:
+    """
+    Builds a transform pipeline for dataset stats (mean/std) calculation.
+    Applies only deterministic, value-preserving transforms (e.g., Resize, ToTensor).
+
+    Args:
+        cfg: Dictionary with keys:
+            - resize: Tuple[int, int]
+
+    Returns:
+        Compose: Transform pipeline without Normalize or augmentation.
+    """
+    operations = [
+        Resize(cfg["resize"]),
+        ToTensor()
     ]
     return Compose(operations)

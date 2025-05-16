@@ -1,6 +1,5 @@
 batch_size: 8
 class_distribution:
-  total_pixels: 650567958
   class_frequencies:
     bicycle: 413655
     building: 106307432
@@ -21,6 +20,7 @@ class_distribution:
     truck: 7801130
     vegetation: 105990742
     wall: 3845805
+  total_pixels: 650567958
 data:
   test_images: data/bdd100k/images/10k/test/
   train_images: data/bdd100k/images/10k/train/
@@ -33,13 +33,13 @@ transforms:
   flip: 0.5
   normalize:
     mean:
-    - 0.3701630234718323
-    - 0.41444894671440125
-    - 0.4244552254676819
+    - 0.3698435425758362
+    - 0.41410791873931885
+    - 0.4238499402999878
     std:
-    - 0.24810604751110077
-    - 0.2652149200439453
-    - 0.28275322914123535
+    - 0.24937671422958374
+    - 0.26646897196769714
+    - 0.2840002775192261
   resize:
   - 256
   - 448
