@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 from typing import Literal
 
 import torch
@@ -64,18 +65,21 @@ def train(model_name: Literal['baseline', 'unet']):
         if val_loss < trainer.best_val_loss:
             trainer.best_checkpoint = epoch
             trainer.best_val_loss = val_loss
-        if epoch == hyperparams['epochs'] + 1:
-            best = trainer.best_checkpoint
-            path = resolve_path(f"outputs/{model_name}/{run_id}/checkpoints/", 2) #TODO: did not change name last time..
-            os.rename(os.path.join(path, f'chkp_epoch_{best}.pth'), os.path.join(path, f'chkp_epoch_{best}_best.pth'))
     
-    # increment run_id
     run_id = int(cfg['runs'][model_name])
+    trainer.determine_best_checkpoint()
+
+    # save copy of cfg.yaml in run dir
+    with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
+        yaml.dump(cfg, f, default_flow_style=False)
+
+    # increment run_id
     cfg['runs'][model_name] = str(run_id + 1)
     cfg_path = resolve_path('cfg.yaml', 2)
 
     with open(cfg_path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -83,5 +87,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.model == None:
         raise ValueError(f"Specify the model to train via `--model [model_name]`.\n"
-                         f"Valid values are 'baseline', 'unet'")
+                         f"Valid values are ['baseline', 'unet']")
     train(args.model)
