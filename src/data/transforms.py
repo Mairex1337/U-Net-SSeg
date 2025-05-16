@@ -122,7 +122,7 @@ class Normalize:
         Returns:
             Tuple[Tensor, Tensor]: Normalized image, and mask.
         """
-        return F.normalize(img, self.mean, self.std), mask
+        return F.normalize(img, self.mean, self.std), mask.squeeze().long()
 
 
 class Compose:

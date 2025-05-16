@@ -1,6 +1,4 @@
-batch_size: 8
 class_distribution:
-  total_pixels: 650567958
   class_frequencies:
     bicycle: 413655
     building: 106307432
@@ -21,6 +19,7 @@ class_distribution:
     truck: 7801130
     vegetation: 105990742
     wall: 3845805
+  total_pixels: 650567958
 data:
   test_images: data/bdd100k/images/10k/test/
   train_images: data/bdd100k/images/10k/train/
@@ -28,7 +27,16 @@ data:
   val_images: data/bdd100k/images/10k/val/
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
 hyperparams:
-  batch_size: 8
+  baseline:
+    batch_size: 8
+    epochs: 10
+    hidden_dim: 128
+    input_dim: 3
+    lr: 0.01
+    num_classes: 19
+runs:
+  baseline: '1'
+  u-net: '1'
 transforms:
   flip: 0.5
   normalize:

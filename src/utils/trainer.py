@@ -1,6 +1,8 @@
+import os
+
 import torch
 import tqdm
-import os
+
 
 class Trainer:
     def __init__(
@@ -23,6 +25,7 @@ class Trainer:
         self.logger = logger
         self.best_val_loss = float("inf")
         self.checkpoint_dir = checkpoint_dir
+        self.best_checkpoint = -1
 
     def train_epoch(self, epoch:int):
         self.model.train()
@@ -36,9 +39,9 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
             total_loss += loss.item()
-            loop.set_postfix(loss=loss.item())
+            loop.set_postfix(loss=f"loss={loss.item():.4f}")
         avg_loss = total_loss / len(self.train_loader)
-        self.logger.log(f"Epoch {epoch} - Train loss: {avg_loss:.4f}")
+        self.logger.info(f"Epoch {epoch} - Train loss: {avg_loss:.4f}")
         return avg_loss
     
     def validate_epoch(self, epoch:int):
@@ -51,19 +54,19 @@ class Trainer:
                 outputs = self.model(images)
                 loss = self.criterion(outputs, masks)
                 total_loss += loss.item()
-                loop.set_postfix(loss=loss.item())
+                loop.set_postfix(loss=f"loss={loss.item():.4f}")
         avg_loss = total_loss / len(self.val_loader)
-        self.logger.log(f"Epoch {epoch} - Validation loss: {avg_loss:.4f}")
+        self.logger.info(f"Epoch {epoch} - Validation loss: {avg_loss:.4f}")
         return avg_loss
     
-    def save_checkpoint(self, epoch:int) -> None:
-        checkpoint_path = os.path.join(self.checkpoint_dir, f"chkp_epoch_{epoch}.pth")
+    def save_checkpoint(self, epoch: int, tag: str = '') -> None:
+        os.makedirs(self.checkpoint_dir, exist_ok=True)
+        checkpoint_path = os.path.join(self.checkpoint_dir, f"chkp_epoch_{epoch}_{tag}.pth")
         torch.save({
             "epoch": epoch,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
         }, checkpoint_path)
-        self.logger.log(f"Checkpoint saved at {checkpoint_path}")
 
 
 

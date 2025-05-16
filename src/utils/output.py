@@ -1,5 +1,9 @@
 import logging
 import os
+
+from torch.cuda import is_available as cuda_is_available
+from torch.mps import is_available as mps_is_available
+
 from src.utils.resolve_path import resolve_path
 
 
@@ -12,7 +16,7 @@ def get_run_dir(run_id: str, model_name: str) -> str:
     os.makedirs(run_directory, exist_ok=True)
     return run_directory
 
-def setup_logging(run_dir: str) -> logging.Logger:
+def get_logger(run_dir: str) -> logging.Logger:
     log_file = os.path.join(run_dir, "training.log")
     logging.basicConfig(
         level=logging.INFO,
@@ -24,3 +28,12 @@ def setup_logging(run_dir: str) -> logging.Logger:
     )
     logger = logging.getLogger("Trainer")
     return logger
+
+def get_device() -> 'str':
+    if cuda_is_available():
+        device = 'cuda'
+    elif mps_is_available():
+        device = 'mps'
+    else:
+        device = 'cpu'
+    return device
