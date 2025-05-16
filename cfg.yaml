@@ -1,26 +1,26 @@
 batch_size: 8
 class_distribution:
   class_frequencies:
-    bicycle: 413655
-    building: 106307432
-    bus: 4465622
-    car: 65248062
-    fence: 8294142
-    motorcycle: 193991
-    person: 2025246
-    pole: 7528516
-    rider: 166288
-    road: 170769304
-    sidewalk: 16337628
-    sky: 138614242
-    terrain: 8283409
-    traffic light: 1441402
-    traffic sign: 2731176
-    train: 110166
-    truck: 7801130
-    vegetation: 105990742
-    wall: 3845805
-  total_pixels: 650567958
+    bicycle: 292759
+    building: 86292065
+    bus: 3597425
+    car: 53160326
+    fence: 6695805
+    motorcycle: 152285
+    person: 1615520
+    pole: 6008381
+    rider: 134031
+    road: 136585365
+    sidewalk: 13212648
+    sky: 112119788
+    terrain: 6365408
+    traffic light: 991457
+    traffic sign: 2087668
+    train: 102757
+    truck: 6209633
+    vegetation: 85976515
+    wall: 3174881
+  total_pixels: 524774717
 data:
   test_images: data/bdd100k/images/10k/test/
   train_images: data/bdd100k/images/10k/train/

@@ -45,7 +45,7 @@ def get_dataloader(
     dataloader = DataLoader(
         ds,
         batch_size=batch_size,
-        shuffle=True and not stats,
+        shuffle=True,
         num_workers=os.cpu_count() // 2,
     )
 
