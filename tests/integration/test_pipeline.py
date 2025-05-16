@@ -1,19 +1,32 @@
-import numpy as np
-import pytest
+from typing import Any, Dict
+
 import torch
 import yaml
 from PIL import Image
 from src.data.dataloader import get_dataloader
 from src.utils.calculate_means import calculate_mean_std
 from tests.integration.utils.toy_dataset import toy_dataset
+from torch.utils.data import DataLoader
 from torchvision.transforms import functional as F
 from torchvision.transforms.functional import to_pil_image
 
 
-def _check_color_jitter(cfg):
+def _check_color_jitter(cfg: Dict[str, Any]) -> None:
     """
+    Verifies that color jittering is applied during training data augmentation.
+
+    This test disables horizontal flipping to isolate the effects of ColorJitter.
+    It fetches two consecutive batches from the DataLoader and asserts that their
+    pixel values differ, indicating that random jitter was applied.
+
+    Args:
+        cfg (Dict[str, Any]): Configuration dictionary containing the transform parameters.
+
+    Raises:
+        AssertionError: If the difference between two image batches is too small,
+                        indicating that ColorJitter may not be applied.
     """
-    cfg["transforms"]["flip"] = 0.0  # Disable flip to isolate jitter
+    cfg["transforms"]["flip"] = 0.0
     dataloader = get_dataloader(cfg=cfg, train=True, batch_size=1, debug=False, stats=False)
 
     img1, _ = next(iter(dataloader))
@@ -48,7 +61,6 @@ def _check_horizontal_flip(cfg: Dict[str, Any]) -> None:
     if not isinstance(pil_mask, Image.Image):
         pil_mask = to_pil_image(pil_mask)
 
-    # Resize and flip the original mask manually
     target_size = cfg["transforms"]["resize"]
     pil_resized = F.resize(pil_mask, target_size, interpolation=F.InterpolationMode.NEAREST)
     pil_flipped = F.hflip(pil_resized)
@@ -58,39 +70,73 @@ def _check_horizontal_flip(cfg: Dict[str, Any]) -> None:
     assert torch.equal(mask_manual, mask_pipeline), "Horizontal flip on mask did not match expected result."
 
 
-def _check_resize(dataloader):
-    # Get a batch of images and masks
+def _check_resize(dataloader: DataLoader) -> None:
+    """
+    Verifies that all images and masks are resized to the expected dimensions.
+
+    This function checks that the shape and datatype of the image and mask tensors
+    match the expected format after resizing during the transform pipeline.
+
+    Args:
+        dataloader (DataLoader): The DataLoader providing transformed batches.
+
+    Raises:
+        AssertionError: If image or mask tensors are not correctly resized or typed,
+                        or if the dataset does not contain the expected number of samples.
+    """
     image_batch, mask_batch = next(iter(dataloader))
-    # Expect shape: (B, C, H, W)| tests resizing
+
     assert isinstance(image_batch, torch.Tensor)
-    assert image_batch.shape == (6, 3, 2, 2)
+    assert image_batch.shape == (6, 3, 2, 2), "Image batch is not resized to expected shape."
     assert image_batch.dtype == torch.float32
 
     assert isinstance(mask_batch, torch.Tensor)
-    assert mask_batch.shape == (6, 1, 2, 2)
+    assert mask_batch.shape == (6, 1, 2, 2), "Mask batch is not resized to expected shape."
     assert mask_batch.dtype == torch.uint8
 
-    # Expect six samples in the dataloader
-    assert len(dataloader.dataset) == 6
+    assert len(dataloader.dataset) == 6, "Dataset does not contain 6 samples."
 
 
-def _check_normalize(dataloader):
-    # Get all images in the dataloader
+def _check_normalize(dataloader: DataLoader) -> None:
+    """
+    Verifies that the normalization transform was applied correctly.
+
+    This function computes the mean and standard deviation of the image batch and
+    asserts that they are approximately zero and one, respectively, indicating that
+    normalization has been applied using calculated values.
+
+    Args:
+        dataloader (DataLoader): The DataLoader providing normalized images.
+
+    Raises:
+        AssertionError: If the mean or std dev is not within tolerance of expected values.
+    """
     all_images = []
     for batch_images, _ in dataloader:
         all_images.append(batch_images)
     images = torch.cat(all_images, dim=0)
 
-    # Calculate mean and std of all images
     mean = torch.mean(images, dim=[0, 2, 3])
     std = torch.std(images, dim=[0, 2, 3])
 
-    # Expect images to be normalized to mean around 0 and std around 1
-    assert torch.allclose(mean, torch.zeros_like(mean), atol=0.5)
-    assert torch.allclose(std, torch.ones_like(std), atol=0.5)
+    assert torch.allclose(mean, torch.zeros_like(mean), atol=0.5), f"Unexpected mean: {mean}"
+    assert torch.allclose(std, torch.ones_like(std), atol=0.5), f"Unexpected std: {std}"
+
 
 def test_train_pipeline(toy_dataset: str) -> None:
     """
+    Integration test that validates the full data preprocessing pipeline.
+
+    This test runs the full transformation pipeline for the training set,
+    including resizing, normalization, color jitter, and horizontal flipping.
+    Each step is validated individually to ensure that data augmentation and
+    preprocessing are functioning as expected.
+
+    Args:
+        toy_dataset (str): Path to a temporary configuration file pointing to toy dataset.
+
+    Raises:
+        AssertionError: If any preprocessing step does not produce the expected result.
     """
     calculate_mean_std()
     cfg = yaml.safe_load(open(toy_dataset))
@@ -101,4 +147,4 @@ def test_train_pipeline(toy_dataset: str) -> None:
     _check_color_jitter(cfg)
     _check_horizontal_flip(cfg)
 
-# TODO: docstrings | type hints | test for val pipeline
+# TODO: test for val pipeline
