@@ -11,7 +11,11 @@ from PIL import Image
 
 def make_image(path: Path, color: Tuple[int, int, int]) -> None:
     """
-    Create and save a tiny RGB JPEG image at the given path.
+    Creates and saves a small RGB JPEG image at the given path with the specified color.
+
+    Args:
+        path (Path): File path where the image will be saved.
+        color (Tuple[int, int, int]): RGB color values (0-255) for the entire image.
     """
     img = Image.new("RGB", (4, 4), color)
     img.save(path, format="JPEG")
@@ -19,9 +23,14 @@ def make_image(path: Path, color: Tuple[int, int, int]) -> None:
 
 def make_asymmetric_mask(path: Path) -> None:
     """
-    Creates an asymmetrical black and white mask and saves it as PNG.
-    These masks are used to test the horizontal flipping of the pipeline,
-    therfore they are not symmetric.
+    Creates and saves a small asymmetric black-and-white PNG mask.
+
+    This function is used for testing horizontal flipping. The left half is black (0),
+    and the right half is white (255), which makes it suitable for detecting whether
+    flipping was correctly applied.
+
+    Args:
+        path (Path): File path where the mask will be saved.
     """
     mask = np.full((4, 4), 0, dtype=np.uint8)
     mask[:, 2 :] = 255
@@ -31,10 +40,26 @@ def make_asymmetric_mask(path: Path) -> None:
 @pytest.fixture
 def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
     """
-    Creates a toy dataset with two training and one validation example including
-    an image/mask each and a cfg.yaml pointing at them.
-    Returns path to the generated cfg.yaml.
+    Pytest fixture to create a synthetic toy dataset and a temporary config file.
+
+    It includes:
+    - 6 training image-mask pairs
+    - 1 validation image-mask pair
+    - Each image is a solid RGB color
+    - Each mask is asymmetric for flip testing
+    - The transforms include resizing, normalization (with dummy values), and flip
+
+    The fixture also monkeypatches the config loading and path resolution to ensure
+    all functions operate on the temporary dataset.
+
+    Args:
+        tmp_path (Path): Temporary directory provided by pytest.
+        monkeypatch (Any): Pytest fixture for modifying or overriding functions during tests.
+
+    Returns:
+        str: Path to the temporary cfg.yaml file.
     """
+
     data_dir = tmp_path / "data"
     train_img = data_dir / "train_images"
     train_mask = data_dir / "train_masks"
@@ -43,7 +68,6 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
     for d in (train_img, train_mask, val_img, val_mask):
         d.mkdir(parents=True)
 
-    # Two train samples: red and green
     make_image(train_img / "0.jpg", (255, 0, 0))
     make_asymmetric_mask(train_mask / "0.png")
     make_image(train_img / "1.jpg", (0, 255, 0))
@@ -58,7 +82,6 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
     make_asymmetric_mask(train_mask / "5.png")
 
 
-    # One val sample: blue
     make_image(val_img / "0.jpg", (0, 0, 255))
     make_asymmetric_mask(val_mask / "0.png")
 
@@ -80,6 +103,17 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
         yaml.safe_dump(cfg, f)
 
     def fake_resolve_path(path: str, up: int) -> str:
+        """
+        Custom path resolver for tests to return our temporary config path.
+
+        Args:
+            path (str): The file path requested.
+            up (int): How many directory levels to go up (ignored here for testing).
+
+
+        Returns:
+            str: The appropriate path to use for config or data access.
+        """
         if os.path.basename(path) == "cfg.yaml":
             return str(cfg_path)
         return path
