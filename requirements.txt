@@ -13,3 +13,5 @@ pyyaml
 matplotlib
 tqdm
 argparse
+torchmetrics
+
