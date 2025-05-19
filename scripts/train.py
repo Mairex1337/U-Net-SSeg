@@ -41,7 +41,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         batch_size=hyperparams['batch_size']
     )
 
-    optimizer = torch.optim.AdamW(model.parameters(), hyperparams['lr'])
+    optimizer = torch.optim.AdamW(model.parameters(), hyperparams['lr'], hyperparams['weight_decay'])
     criterion = get_weighted_criterion(cfg, device=device)
 
     trainer = Trainer(
