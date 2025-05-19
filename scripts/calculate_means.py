@@ -2,7 +2,7 @@ import torch
 import yaml
 
 from src.data.dataloader import get_dataloader
-from src.utils import read_config, resolve_path
+from src.utils import read_config, resolve_path, write_config
 
 
 def calculate_mean_std() -> None:
@@ -35,8 +35,7 @@ def calculate_mean_std() -> None:
         'std': std.tolist(),
     }
 
-    with open(path, 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
+    write_config(cfg)
 
 if __name__ == '__main__':
     calculate_mean_std()

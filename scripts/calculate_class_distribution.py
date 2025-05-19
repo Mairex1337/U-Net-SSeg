@@ -4,7 +4,7 @@ import numpy as np
 import yaml
 
 from src.data import get_dataloader
-from src.utils import read_config, resolve_path
+from src.utils import read_config, resolve_path, write_config
 
 
 def calculate_class_distribution() -> None:
@@ -34,8 +34,7 @@ def calculate_class_distribution() -> None:
     cfg['class_distribution']['total_pixels'] = total_pixels
     cfg['class_distribution']['class_frequencies'] = class_distribution
 
-    with open(path, 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
+    write_config(cfg)
 
 if __name__ == '__main__':
     calculate_class_distribution()
