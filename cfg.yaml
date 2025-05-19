@@ -1,4 +1,3 @@
-batch_size: 8
 class_distribution:
   class_frequencies:
     bicycle: 292759
@@ -21,6 +20,26 @@ class_distribution:
     vegetation: 85976515
     wall: 3174881
   total_pixels: 524774717
+  id_to_class:
+    0: road
+    1: sidewalk
+    2: building
+    3: wall
+    4: fence
+    5: pole
+    6: traffic light
+    7: traffic sign
+    8: vegetation
+    9: terrain
+    10: sky
+    11: person
+    12: rider
+    13: car
+    14: truck
+    15: bus
+    16: train
+    17: motorcycle
+    18: bicycle
 data:
   test_images: data/bdd100k/images/10k/test/
   train_images: data/bdd100k/images/10k/train/
@@ -28,7 +47,16 @@ data:
   val_images: data/bdd100k/images/10k/val/
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
 hyperparams:
-  batch_size: 8
+  baseline:
+    batch_size: 8
+    epochs: 10
+    hidden_dim: 128
+    input_dim: 3
+    lr: 0.01
+    num_classes: 19
+runs:
+  baseline: '1'
+  u-net: '1'
 transforms:
   flip: 0.5
   normalize:
