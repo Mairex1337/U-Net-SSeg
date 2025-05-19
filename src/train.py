@@ -10,11 +10,12 @@ from src.models.baseline_model import BaselineModel
 from src.utils.output import get_device, get_logger, get_run_dir
 from src.utils.read_config import read_config
 from src.utils.resolve_path import resolve_path
-from src.utils.trainer import Trainer
+from src.utils.trainer import Trainer, get_weighted_criterion
 
 MODELS = {'baseline': BaselineModel}
 
-def train(model_name: Literal['baseline', 'unet']):
+def train(model_name: Literal['baseline', 'unet']) -> None:
+    """Pipeline for training on a single device"""
     cfg = read_config()
 
     run_dir = get_run_dir(cfg['runs'][model_name], model_name)
@@ -42,7 +43,7 @@ def train(model_name: Literal['baseline', 'unet']):
     )
 
     optimizer = torch.optim.AdamW(model.parameters(), hyperparams['lr'])
-    criterion = torch.nn.CrossEntropyLoss(ignore_index=255) #TODO: make inverse weight adjusted
+    criterion = get_weighted_criterion(cfg, device=device)
 
     trainer = Trainer(
         model=model,
