@@ -1,8 +1,9 @@
 import os
-import time
 
 import torch
 import tqdm
+
+from src.utils import Timer
 
 
 class Trainer:
@@ -32,7 +33,7 @@ class Trainer:
             optimizer,
             logger,
             checkpoint_dir: str,
-    ):
+    ) -> None:
         self.model = model
         self.device = device
         self.train_loader = train_loader
@@ -80,7 +81,7 @@ class Trainer:
                 loop.update(len(images))
         avg_loss = total_loss / len(self.train_loader)
         self.logger.info(
-            f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {len(self._train_samples) / t.elapsed:.2f} samples/s"
+            f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s"
         )
         return avg_loss
     
@@ -99,7 +100,7 @@ class Trainer:
         loop = tqdm.tqdm(
             total=len(self.val_loader.dataset),
             desc=f"Validate epoch {epoch}",
-            unit="sample",
+            unit=" samples",
             bar_format=self._bar_format
         )
         with torch.no_grad(), Timer() as t:
@@ -112,7 +113,7 @@ class Trainer:
                 loop.update(len(images))
         avg_loss = total_loss / len(self.val_loader)
         self.logger.info(
-            f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {len(self._val_samples)/t.elapsed:.2f} samples/s"
+            f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {self._val_samples / t.elapsed:.2f} samples/s"
         )
         return avg_loss
     
@@ -155,38 +156,3 @@ class Trainer:
         if not os.path.exists(src):
             raise FileNotFoundError(f"Checkpoint {src} does not exist.")
         os.rename(src, dst)
-
-    
-class Timer:
-    """Context manager for measuring elapsed time in seconds."""
-
-    def __enter__(self) -> "Timer":
-        self.start = time.time()
-        return self
-
-    def __exit__(self, *args) -> None:
-        self.elapsed = time.time() - self.start
-    
-
-def get_weighted_criterion(cfg: dict, device: str) -> torch.nn.CrossEntropyLoss:
-    """
-    Returns a weighted CrossEntropyLoss for semantic segmentation.
-
-    Computes class weights from pixel frequencies provided,
-    applying inverse frequency normalization. Ignores the class index 255.
-
-    Args:
-        cfg (dict): Configuration dictionary
-        device (str): Contains the device used for training
-
-    Returns:
-        torch.nn.CrossEntropyLoss: Weighted loss function with ignore_index set to 255.
-    """
-    frequencies = cfg["class_distribution"]["class_frequencies"]
-    total_pixels = cfg["class_distribution"]["total_pixels"]
-    id_to_class = cfg["class_distribution"]["id_to_class"]
-    weights_by_id = torch.tensor([
-        total_pixels / (len(id_to_class) * frequencies[id_to_class[i]])
-        for i in range(len(id_to_class))
-    ], device=device)
-    return torch.nn.CrossEntropyLoss(weight=weights_by_id, ignore_index=255)

@@ -5,12 +5,11 @@ from typing import Literal
 import torch
 import yaml
 
-from src.data.dataloader import get_dataloader
-from src.models.baseline_model import BaselineModel
-from src.utils.output import get_device, get_logger, get_run_dir
-from src.utils.read_config import read_config
-from src.utils.resolve_path import resolve_path
-from src.utils.trainer import Trainer, get_weighted_criterion
+from src.data import get_dataloader
+from src.models import BaselineModel
+from src.training import Trainer, get_weighted_criterion
+from src.utils import (get_device, get_logger, get_run_dir, read_config,
+                       resolve_path)
 
 MODELS = {'baseline': BaselineModel}
 
@@ -42,7 +41,11 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         batch_size=hyperparams['batch_size']
     )
 
-    optimizer = torch.optim.AdamW(model.parameters(), hyperparams['lr'])
+    optimizer = torch.optim.AdamW(
+        params=model.parameters(),
+        weight_decay=hyperparams['weight_decay'], 
+        lr=hyperparams['lr']
+    )
     criterion = get_weighted_criterion(cfg, device=device)
 
     trainer = Trainer(
@@ -74,7 +77,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
     # increment run_id
     run_id = int(cfg['runs'][model_name])
     cfg['runs'][model_name] = str(run_id + 1)
-    cfg_path = resolve_path('cfg.yaml', 2)
+    cfg_path = resolve_path('cfg.yaml')
 
     with open(cfg_path, 'w') as f:
         yaml.dump(cfg, f, default_flow_style=False)
