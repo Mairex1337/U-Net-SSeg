@@ -19,7 +19,6 @@ class_distribution:
     truck: 6209633
     vegetation: 85976515
     wall: 3174881
-  total_pixels: 524774717
   id_to_class:
     0: road
     1: sidewalk
@@ -40,6 +39,7 @@ class_distribution:
     16: train
     17: motorcycle
     18: bicycle
+  total_pixels: 524774717
 data:
   test_images: data/bdd100k/images/10k/test/
   train_images: data/bdd100k/images/10k/train/
@@ -53,10 +53,10 @@ hyperparams:
     hidden_dim: 128
     input_dim: 3
     lr: 0.001
-    weight_decay: 0.0001
     num_classes: 19
+    weight_decay: 0.0001
 runs:
-  baseline: '1'
+  baseline: '2'
   u-net: '1'
 transforms:
   flip: 0.5

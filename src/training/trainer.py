@@ -100,7 +100,7 @@ class Trainer:
         loop = tqdm.tqdm(
             total=len(self.val_loader.dataset),
             desc=f"Validate epoch {epoch}",
-            unit="sample",
+            unit=" samples",
             bar_format=self._bar_format
         )
         with torch.no_grad(), Timer() as t:
