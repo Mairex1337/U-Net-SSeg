@@ -1,8 +1,9 @@
 import os
-import time
 
 import torch
 import tqdm
+
+from src.utils import Timer
 
 
 class Trainer:
@@ -155,38 +156,3 @@ class Trainer:
         if not os.path.exists(src):
             raise FileNotFoundError(f"Checkpoint {src} does not exist.")
         os.rename(src, dst)
-
-    
-class Timer:
-    """Context manager for measuring elapsed time in seconds."""
-
-    def __enter__(self) -> "Timer":
-        self.start = time.time()
-        return self
-
-    def __exit__(self, *args) -> None:
-        self.elapsed = time.time() - self.start
-    
-
-def get_weighted_criterion(cfg: dict, device: str) -> torch.nn.CrossEntropyLoss:
-    """
-    Returns a weighted CrossEntropyLoss for semantic segmentation.
-
-    Computes class weights from pixel frequencies provided,
-    applying inverse frequency normalization. Ignores the class index 255.
-
-    Args:
-        cfg (dict): Configuration dictionary
-        device (str): Contains the device used for training
-
-    Returns:
-        torch.nn.CrossEntropyLoss: Weighted loss function with ignore_index set to 255.
-    """
-    frequencies = cfg["class_distribution"]["class_frequencies"]
-    total_pixels = cfg["class_distribution"]["total_pixels"]
-    id_to_class = cfg["class_distribution"]["id_to_class"]
-    weights_by_id = torch.tensor([
-        total_pixels / (len(id_to_class) * frequencies[id_to_class[i]])
-        for i in range(len(id_to_class))
-    ], device=device)
-    return torch.nn.CrossEntropyLoss(weight=weights_by_id, ignore_index=255)

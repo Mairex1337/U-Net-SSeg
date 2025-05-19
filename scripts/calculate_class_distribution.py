@@ -1,15 +1,10 @@
 from collections import defaultdict
 
 import numpy as np
-import torchvision.transforms as transforms
 import yaml
-from torch.utils.data import DataLoader
 
-from src.data.dataloader import get_dataloader
-from src.data.dataset import SegmentationDataset
-from src.data.transforms import Compose, Resize, ToTensor
-from src.utils.read_config import read_config
-from src.utils.resolve_path import resolve_path
+from src.data import get_dataloader
+from src.utils import read_config, resolve_path
 
 
 def calculate_class_distribution() -> None:
@@ -34,7 +29,7 @@ def calculate_class_distribution() -> None:
     total_pixels = int(sum(pixel_counts.values()))
     class_distribution = {class_name: int(total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
 
-    path = resolve_path("cfg.yaml", 2)
+    path = resolve_path("cfg.yaml")
 
     cfg['class_distribution']['total_pixels'] = total_pixels
     cfg['class_distribution']['class_frequencies'] = class_distribution

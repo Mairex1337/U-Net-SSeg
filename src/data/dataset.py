@@ -5,8 +5,8 @@ from PIL import Image
 from torch import Tensor
 from torchvision.transforms.functional import pil_to_tensor, to_tensor
 
-from src.data.transforms import Compose
-from src.utils.resolve_path import resolve_path
+from src.data import Compose
+from src.utils import resolve_path
 
 
 class SegmentationDataset(data.Dataset):
@@ -34,8 +34,8 @@ class SegmentationDataset(data.Dataset):
             debug: bool = False 
     ) -> None:
         self.transforms = transforms
-        self.img_dir = resolve_path(img_dir, 2)
-        self.mask_dir = resolve_path(mask_dir, 2)
+        self.img_dir = resolve_path(img_dir)
+        self.mask_dir = resolve_path(mask_dir)
         self.debug = debug
         self.img_idx = sorted([
             os.path.splitext(f)[0] for f in os.listdir(self.img_dir)
