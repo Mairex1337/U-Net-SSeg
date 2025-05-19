@@ -5,7 +5,7 @@ from PIL import Image
 from torch import Tensor
 from torchvision.transforms.functional import pil_to_tensor, to_tensor
 
-from src.data import Compose
+from src.data.transforms import Compose
 from src.utils import resolve_path
 
 

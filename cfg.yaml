@@ -52,7 +52,7 @@ hyperparams:
     epochs: 10
     hidden_dim: 128
     input_dim: 3
-    lr: 0.01
+    lr: 0.001
     num_classes: 19
 runs:
   baseline: '1'

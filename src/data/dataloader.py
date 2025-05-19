@@ -2,8 +2,9 @@ import os
 
 from torch.utils.data import DataLoader
 
-from src.data import (SegmentationDataset, get_stats_transforms,
-                      get_train_transforms, get_val_transforms)
+from src.data.dataset import SegmentationDataset
+from src.data.transforms import (get_stats_transforms, get_train_transforms,
+                                 get_val_transforms)
 
 
 def get_dataloader(
