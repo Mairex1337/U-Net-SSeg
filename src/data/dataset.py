@@ -3,7 +3,7 @@ import os
 import torch.utils.data as data
 from PIL import Image
 from src.data.transforms import Compose
-from src.utils.resolve_path import resolve_path
+from src.utils import resolve_path
 from torch import Tensor
 from torchvision.transforms.functional import pil_to_tensor, to_tensor
 

@@ -1,6 +1,6 @@
 import pytest
 import yaml
-from src.utils.calculate_means import calculate_mean_std
+from scripts.calculate_means import calculate_mean_std
 from tests.integration.utils.toy_dataset import toy_dataset
 
 

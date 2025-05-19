@@ -4,7 +4,9 @@ from typing import Any, Tuple
 
 import numpy as np
 import pytest
-import src.utils.calculate_means as cm
+import scripts.calculate_means as cm
+import src.data.dataset as dataset_mod
+import src.utils.path as path_utils
 import yaml
 from PIL import Image
 
@@ -102,7 +104,7 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
     with open(cfg_path, "w") as f:
         yaml.safe_dump(cfg, f)
 
-    def fake_resolve_path(path: str, up: int) -> str:
+    def fake_resolve_path(path: str) -> str:
         """
         Custom path resolver for tests to return our temporary config path.
 
@@ -118,13 +120,10 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
         return path
 
     monkeypatch.setenv("PYTHONPATH", str(tmp_path))
-    monkeypatch.setattr(cm,
-        "resolve_path",
-        fake_resolve_path
-    )
-    monkeypatch.setattr(cm,
-        "read_config",
-        lambda: yaml.safe_load(cfg_path.read_text())
-    )
+    monkeypatch.setattr(cm, "read_config", lambda: yaml.safe_load(cfg_path.read_text()))
+    monkeypatch.setattr(cm, "resolve_path", fake_resolve_path)
+    monkeypatch.setattr(dataset_mod, "resolve_path", lambda p: p)
+    monkeypatch.setattr(path_utils, "resolve_path", lambda p: p)
+    monkeypatch.setattr(cm, "write_config", lambda cfg: yaml.safe_dump(cfg, open(cfg_path, "w")))
 
     return str(cfg_path)

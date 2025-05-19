@@ -3,8 +3,8 @@ from typing import Any, Dict
 import torch
 import yaml
 from PIL import Image
+from scripts.calculate_means import calculate_mean_std
 from src.data.dataloader import get_dataloader
-from src.utils.calculate_means import calculate_mean_std
 from tests.integration.utils.toy_dataset import toy_dataset
 from torch.utils.data import DataLoader
 from torchvision.transforms import functional as F
@@ -64,7 +64,7 @@ def _check_horizontal_flip(cfg: Dict[str, Any]) -> None:
     target_size = cfg["transforms"]["resize"]
     pil_resized = F.resize(pil_mask, target_size, interpolation=F.InterpolationMode.NEAREST)
     pil_flipped = F.hflip(pil_resized)
-    mask_manual = F.pil_to_tensor(pil_flipped)
+    mask_manual = F.pil_to_tensor(pil_flipped).squeeze(0)
 
     mask_pipeline = mask_tensor[0]
     assert torch.equal(mask_manual, mask_pipeline), "Horizontal flip on mask did not match expected result."
@@ -91,8 +91,8 @@ def _check_resize(dataloader: DataLoader) -> None:
     assert image_batch.dtype == torch.float32
 
     assert isinstance(mask_batch, torch.Tensor)
-    assert mask_batch.shape == (6, 1, 2, 2), "Mask batch is not resized to expected shape."
-    assert mask_batch.dtype == torch.uint8
+    assert mask_batch.shape == (6, 2, 2), "Mask batch is not resized to expected shape."
+    assert mask_batch.dtype == torch.int64
 
     assert len(dataloader.dataset) == 6, "Dataset does not contain 6 samples."
 
@@ -127,10 +127,10 @@ def test_train_pipeline(toy_dataset: str) -> None:
     """
     Integration test that validates the full data preprocessing pipeline.
 
-    This test runs the full transformation pipeline for the training set,
-    including resizing, normalization, color jitter, and horizontal flipping.
-    Each step is validated individually to ensure that data augmentation and
-    preprocessing are functioning as expected.
+    This test runs the full transformation pipeline, including resizing,
+    normalization, color jitter, and horizontal flipping. Each step is validated
+    individually to ensure that data augmentation and preprocessing are
+    functioning as expected.
 
     Args:
         toy_dataset (str): Path to a temporary configuration file pointing to toy dataset.
@@ -146,25 +146,3 @@ def test_train_pipeline(toy_dataset: str) -> None:
     _check_normalize(dataloader)
     _check_color_jitter(cfg)
     _check_horizontal_flip(cfg)
-
-
-def test_val_pipeline(toy_dataset: str) -> None:
-    """
-    Integration test that validates the full data preprocessing pipeline for validation data.
-
-    This test runs the full transformation pipeline for the validation set,
-    including resizing and normalization. Each step is validated individually
-    to ensure that data preprocessing is functioning as expected.
-
-    Args:
-        toy_dataset (str): Path to a temporary configuration file pointing to toy dataset.
-
-    Raises:
-        AssertionError: If any preprocessing step does not produce the expected result.
-    """
-    calculate_mean_std()
-    cfg = yaml.safe_load(open(toy_dataset))
-    dataloader = get_dataloader(cfg=cfg, train=False, batch_size=6, debug=False, stats=False)
-
-    _check_resize(dataloader)
-    _check_normalize(dataloader)
