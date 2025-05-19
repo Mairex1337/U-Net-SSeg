@@ -3,7 +3,7 @@ import os
 from torch.utils.data import DataLoader
 
 from src.data.dataset import SegmentationDataset
-from src.data.transforms import get_train_transforms, get_val_transforms
+from src.data.transforms import get_train_transforms, get_val_transforms, get_stats_transforms
 
 
 def get_dataloader(
@@ -11,6 +11,7 @@ def get_dataloader(
     train: bool,
     batch_size: int = 8,
     debug: bool = False,
+    stats: bool = False,
 ) -> DataLoader:
     """
     Creates a DataLoader object.
@@ -21,13 +22,18 @@ def get_dataloader(
         batch_size (int): Number of samples per batch. Default is 8.
         debug (bool): Indicates debug mode. If true, DataLoader also returns
             original images and masks within the batch.
+        stats (bool): If True, return data without Normalize/Augment
+            (for mean/std calc).
 
     Returns:
         DataLoader: A PyTorch DataLoader that samples from dataset.
     """
     img_dir = cfg['data']['train_images'] if train else cfg['data']['val_images']
     mask_dir = cfg['data']['train_masks'] if train else cfg['data']['val_masks']
-    transforms = get_train_transforms(cfg['transforms']) if train else get_val_transforms(cfg['transforms'])
+    if stats:
+        transforms = get_stats_transforms(cfg['transforms'])
+    else:
+        transforms = get_train_transforms(cfg['transforms']) if train else get_val_transforms(cfg['transforms'])
 
     ds = SegmentationDataset(
         img_dir,
