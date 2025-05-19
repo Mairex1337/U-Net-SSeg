@@ -81,7 +81,7 @@ class Trainer:
                 loop.update(len(images))
         avg_loss = total_loss / len(self.train_loader)
         self.logger.info(
-            f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {len(self._train_samples) / t.elapsed:.2f} samples/s"
+            f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s"
         )
         return avg_loss
     
@@ -113,7 +113,7 @@ class Trainer:
                 loop.update(len(images))
         avg_loss = total_loss / len(self.val_loader)
         self.logger.info(
-            f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {len(self._val_samples)/t.elapsed:.2f} samples/s"
+            f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {self._val_samples / t.elapsed:.2f} samples/s"
         )
         return avg_loss
     
