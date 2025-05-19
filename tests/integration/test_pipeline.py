@@ -147,4 +147,24 @@ def test_train_pipeline(toy_dataset: str) -> None:
     _check_color_jitter(cfg)
     _check_horizontal_flip(cfg)
 
-# TODO: test for val pipeline
+
+def test_val_pipeline(toy_dataset: str) -> None:
+    """
+    Integration test that validates the full data preprocessing pipeline for validation data.
+
+    This test runs the full transformation pipeline for the validation set,
+    including resizing and normalization. Each step is validated individually
+    to ensure that data preprocessing is functioning as expected.
+
+    Args:
+        toy_dataset (str): Path to a temporary configuration file pointing to toy dataset.
+
+    Raises:
+        AssertionError: If any preprocessing step does not produce the expected result.
+    """
+    calculate_mean_std()
+    cfg = yaml.safe_load(open(toy_dataset))
+    dataloader = get_dataloader(cfg=cfg, train=False, batch_size=6, debug=False, stats=False)
+
+    _check_resize(dataloader)
+    _check_normalize(dataloader)
