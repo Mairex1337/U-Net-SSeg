@@ -33,7 +33,7 @@ class Trainer:
             optimizer,
             logger,
             checkpoint_dir: str,
-    ):
+    ) -> None:
         self.model = model
         self.device = device
         self.train_loader = train_loader
