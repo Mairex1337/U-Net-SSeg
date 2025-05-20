@@ -1,10 +1,11 @@
 import argparse
-from typing import Dict, List, Union
+import os
+from typing import Dict, Union
 
 import torch
 import tqdm
 from src.data import get_dataloader
-from src.utils import Timer, get_device, read_config, get_model, get_checkpoint
+from src.utils import Timer, get_device, get_model, get_run_dir, read_config, get_logger, get_best_checkpoint
 from torch.utils.data import DataLoader
 from torchmetrics.classification import JaccardIndex, MulticlassF1Score
 
@@ -80,26 +81,6 @@ def evaluate_model(
     }
 
 
-def print_per_class_metrics(
-    iou_per_class: torch.Tensor,
-    dice_per_class: torch.Tensor,
-    class_names: List[str]
-) -> None:
-    """
-    Prints per-class IoU and Dice metrics in a formatted table.
-
-    Args:
-        iou_per_class (torch.Tensor): Tensor of per-class IoU scores.
-        dice_per_class (torch.Tensor): Tensor of per-class Dice scores.
-        class_names (List[str]): Human-readable names for each class.
-    """
-    print("\nPer-Class Evaluation Metrics:")
-    print(f"{'Class':<18}{'IoU':>10}{'Dice':>10}")
-    print("-" * 38)
-    for idx, (iou, dice) in enumerate(zip(iou_per_class, dice_per_class)):
-        print(f"{idx:<4}{class_names[idx]:<14}{iou.item():>10.4f}{dice.item():>10.4f}")
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Evaluate a trained segmentation model.")
     parser.add_argument('--model', type=str, choices=['baseline', 'unet'])
@@ -109,8 +90,11 @@ if __name__ == '__main__':
     cfg = read_config()
     device = get_device()
     model = get_model(cfg, args.model).to(device)
+    run_dir = get_run_dir(args.run_id, args.model)
+    logger = get_logger(run_dir, "eval.log")
 
-    checkpoint_path = get_checkpoint(args.model, args.run_id)
+    checkpoints_dir = os.path.join(run_dir, "checkpoints")
+    checkpoint_path = get_best_checkpoint(checkpoints_dir)
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint["model_state_dict"])
 
@@ -118,10 +102,11 @@ if __name__ == '__main__':
 
     results = evaluate_model(model, dataloader, device, cfg['hyperparams'][args.model]['num_classes'])
 
-    print("Evaluation Results:")
-    print(f"Mean IoU: {results['mIoU']:.4f}")
-    print(f"Mean Dice: {results['mDice']:.4f}")
-    print_per_class_metrics(
-        results['IoU_per_class'],
-        results['Dice_per_class'],
-        cfg['class_distribution']['id_to_class'])
+    logger.info("Evaluation Results:")
+    logger.info(f"Mean IoU: {results['mIoU']:.4f}")
+    logger.info(f"Mean Dice: {results['mDice']:.4f}")
+    logger.info("\nPer-Class Evaluation Metrics:")
+    logger.info(f"{'Class':<18}{'IoU':>10}{'Dice':>10}")
+    logger.info("-" * 38)
+    for idx, (iou, dice) in enumerate(zip(results['IoU_per_class'], results['Dice_per_class'])):
+        logger.info(f"{idx:<4}{cfg['class_distribution']['id_to_class'][idx]:<14}{iou.item():>10.4f}{dice.item():>10.4f}")

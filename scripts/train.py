@@ -17,7 +17,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
     run_dir = get_run_dir(cfg['runs'][model_name], model_name)
     chkpt_dir = os.path.join(run_dir, 'checkpoints')
-    logger = get_logger(run_dir)
+    logger = get_logger(run_dir, "training.log")
     device = get_device()
 
     hyperparams = cfg['hyperparams'][f'{model_name}']

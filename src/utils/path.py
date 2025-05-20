@@ -63,21 +63,7 @@ def get_run_dir(run_id: str, model_name: str) -> str:
     return run_directory
 
 
-def get_checkpoint(model_name: str, run_id: str) -> str:
-    """
-    Retrieves the file path to the best checkpoint for a given model and run.
-
-    Args:
-        model_name (str): Name of the model architecture (e.g., 'baseline').
-        run_id (str): Identifier of the training run.
-
-    Returns:
-        str: File path to the best checkpoint.
-
-    Raises:
-        FileNotFoundError: If the checkpoint directory or best checkpoint is not found.
-    """
-    checkpoints_dir = resolve_path(os.path.join("outputs", model_name, run_id, "checkpoints"))
+def get_best_checkpoint(checkpoints_dir: str) -> str:
     if not os.path.exists(checkpoints_dir):
         raise FileNotFoundError(f"Checkpoint directory not found: {checkpoints_dir}")
 
