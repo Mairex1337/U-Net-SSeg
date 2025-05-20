@@ -1,11 +1,10 @@
 import argparse
-import os
 from typing import Dict, List, Union
 
 import torch
 import tqdm
 from src.data import get_dataloader
-from src.utils import Timer, get_device, read_config, resolve_path, get_model
+from src.utils import Timer, get_device, read_config, get_model, get_checkpoint
 from torch.utils.data import DataLoader
 from torchmetrics.classification import JaccardIndex, MulticlassF1Score
 
@@ -52,7 +51,7 @@ def evaluate_model(
         unit=" samples",
         bar_format="{l_bar}{bar} | {n_fmt}/{total_fmt} [{rate_fmt} {postfix}]"
     )
-    
+
     with Timer() as t:
         with torch.no_grad():
             for images, masks in dataloader:
@@ -80,34 +79,6 @@ def evaluate_model(
         "mDice": mean_dice.item()
     }
 
-def get_checkpoint(model_name: str, run_id: str) -> str:
-    """
-    Retrieves the file path to the best checkpoint for a given model and run.
-
-    Args:
-        model_name (str): Name of the model architecture (e.g., 'baseline').
-        run_id (str): Identifier of the training run.
-
-    Returns:
-        str: File path to the best checkpoint.
-
-    Raises:
-        FileNotFoundError: If the checkpoint directory or best checkpoint is not found.
-    """
-    checkpoints_dir = resolve_path(os.path.join("outputs", model_name, run_id, "checkpoints"))
-    if not os.path.exists(checkpoints_dir):
-        raise FileNotFoundError(f"Checkpoint directory not found: {checkpoints_dir}")
-
-    best_checkpoint = None
-    for file in os.listdir(checkpoints_dir):
-        if "best" in file and file.endswith(".pth"):
-            best_checkpoint = os.path.join(checkpoints_dir, file)
-            break
-
-    if best_checkpoint is None:
-        raise FileNotFoundError(f"No checkpoint with 'best' in the name found in {checkpoints_dir}")
-
-    return best_checkpoint
 
 def print_per_class_metrics(
     iou_per_class: torch.Tensor,
