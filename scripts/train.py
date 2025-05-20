@@ -6,12 +6,10 @@ import torch
 import yaml
 
 from src.data import get_dataloader
-from src.models import BaselineModel
 from src.training import Trainer, get_weighted_criterion
 from src.utils import (get_device, get_logger, get_run_dir, read_config,
-                       resolve_path)
+                       resolve_path, get_model)
 
-MODELS = {'baseline': BaselineModel}
 
 def train(model_name: Literal['baseline', 'unet']) -> None:
     """Pipeline for training on a single device"""
@@ -22,13 +20,8 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
     logger = get_logger(run_dir)
     device = get_device()
 
-    assert model_name in MODELS.keys()
     hyperparams = cfg['hyperparams'][f'{model_name}']
-    model = MODELS[model_name](
-        hyperparams['input_dim'],
-        hyperparams['hidden_dim'],
-        hyperparams['num_classes']
-    ).to(device)
+    model = get_model(cfg, model_name).to(device)
 
     train_loader = get_dataloader(
         cfg,
@@ -43,7 +36,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
-        weight_decay=hyperparams['weight_decay'], 
+        weight_decay=hyperparams['weight_decay'],
         lr=hyperparams['lr']
     )
     criterion = get_weighted_criterion(cfg, device=device)
@@ -67,7 +60,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         if val_loss < trainer.best_val_loss:
             trainer.best_checkpoint = epoch
             trainer.best_val_loss = val_loss
-    
+
     trainer.determine_best_checkpoint()
 
     # save copy of cfg.yaml in run dir
