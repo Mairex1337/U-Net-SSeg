@@ -61,3 +61,19 @@ def get_run_dir(run_id: str, model_name: str) -> str:
     run_directory = os.path.join(base_path, model_name, run_id)
     os.makedirs(run_directory, exist_ok=True)
     return run_directory
+
+
+def get_best_checkpoint(checkpoints_dir: str) -> str:
+    if not os.path.exists(checkpoints_dir):
+        raise FileNotFoundError(f"Checkpoint directory not found: {checkpoints_dir}")
+
+    best_checkpoint = None
+    for file in os.listdir(checkpoints_dir):
+        if "best" in file and file.endswith(".pth"):
+            best_checkpoint = os.path.join(checkpoints_dir, file)
+            break
+
+    if best_checkpoint is None:
+        raise FileNotFoundError(f"No checkpoint with 'best' in the name found in {checkpoints_dir}")
+
+    return best_checkpoint
