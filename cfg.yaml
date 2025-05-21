@@ -75,5 +75,5 @@ transforms:
   - 720
   - 1280
   resize:
-  - 360
+  - 368 #divisible by 16, have to see how much we are downsampling
   - 640
