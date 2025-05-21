@@ -48,7 +48,7 @@ data:
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
 hyperparams:
   baseline:
-    batch_size: 8
+    batch_size: 16
     epochs: 25
     hidden_dim: 128
     input_dim: 3
@@ -60,6 +60,8 @@ runs:
   u-net: '1'
 transforms:
   flip: 0.5
+  max_scale: 1.0
+  min_scale: 0.35
   normalize:
     mean:
     - 0.3698435425758362
@@ -69,6 +71,9 @@ transforms:
     - 0.24937671422958374
     - 0.26646897196769714
     - 0.2840002775192261
+  og_scale:
+  - 720
+  - 1280
   resize:
-  - 256
-  - 448
+  - 360
+  - 640
