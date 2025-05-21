@@ -163,7 +163,7 @@ class RandomScale:
 
 class PadIfSmaller:
     """
-    Randomly resize both image and mask.
+    Pad image and mask to min_size if smaller.
 
     Args:
         min_size (float): minimum resize
@@ -175,15 +175,14 @@ class PadIfSmaller:
 
     def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
         """
-        
-        Resize both img and mask.
+        Pad image and mask.
 
         Args:
             img (Tensor): Image tensor.
             mask (Tensor): Corresponding mask.
 
         Returns:
-            Tuple[Tensor, Tensor]: Randomly resized image and mask.
+            Tuple[Tensor, Tensor]: Padded image and mask.
         """
         assert img.size == mask.size
         w, h = img.size
