@@ -1,6 +1,6 @@
 import os
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
 
 from src.data.dataset import SegmentationDataset
 from src.data.transforms import (get_stats_transforms, get_train_transforms,
@@ -10,6 +10,8 @@ from src.data.transforms import (get_stats_transforms, get_train_transforms,
 def get_dataloader(
     cfg: dict,
     train: bool,
+    world_size: int = 1,
+    rank: int = 0,
     batch_size: int = 8,
     debug: bool = False,
     stats: bool = False,
@@ -20,6 +22,8 @@ def get_dataloader(
     Args:
         cfg: Dictionary of parsed cfg.yaml file.
         train (bool): Signifies if this is the train or val dataloader.
+        world_size (int): Number of processes when training distributed.
+        rank (int): Device rank when training distributed.
         batch_size (int): Number of samples per batch. Default is 8.
         debug (bool): Indicates debug mode. If true, DataLoader also returns
             original images and masks within the batch.
@@ -43,10 +47,22 @@ def get_dataloader(
         debug=debug
     )
 
+    if world_size > 1:
+        sampler = DistributedSampler(
+            ds,
+            num_replicas=world_size,
+            rank=rank,
+            shuffle=train
+        )
+    else:
+        sampler = None
+
     dataloader = DataLoader(
         ds,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=train if sampler is None else False,
+        sampler = sampler,
+        pin_memory=(sampler is not None),
         num_workers=os.cpu_count() // 2,
     )
 

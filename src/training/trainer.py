@@ -1,6 +1,8 @@
 import os
+from contextlib import nullcontext
 
 import torch
+import torch.distributed as dist
 import tqdm
 
 from src.utils import Timer
@@ -33,6 +35,8 @@ class Trainer:
             optimizer,
             logger,
             checkpoint_dir: str,
+            world_size: int = 0,
+            rank: int = 0,
     ) -> None:
         self.model = model
         self.device = device
@@ -41,8 +45,11 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.logger = logger
-        self.best_val_loss = float("inf")
         self.checkpoint_dir = checkpoint_dir
+        self.world_size = world_size
+        self.rank = rank
+        self.ddp = world_size > 1
+        self.best_val_loss = float("inf")
         self.best_checkpoint = -1
         self._bar_format = "{l_bar}{bar} | {n_fmt}/{total_fmt} [{rate_fmt} {postfix}]"
         self._train_samples = len(self.train_loader.dataset)
@@ -61,28 +68,34 @@ class Trainer:
         """
         ...
         self.model.train()
-        total_loss = 0.0
-        loop = tqdm.tqdm(
-            total=len(self.train_loader.dataset), 
-            desc=f"Train epoch {epoch}",
-            unit=" samples",
-            bar_format=self._bar_format
-        )
-        with Timer() as t:
+        total_loss = torch.tensor(0.0, device=self.device)
+        if self.rank == 0:
+            loop = tqdm.tqdm(
+                total=len(self.train_loader.dataset), 
+                desc=f"Train epoch {epoch}",
+                unit=" samples",
+                bar_format=self._bar_format
+            )
+        with (Timer() if self.rank == 0 else nullcontext()) as t:
             for images, masks in self.train_loader:
                 images, masks = images.to(self.device), masks.to(self.device)
                 self.optimizer.zero_grad()
-                outputs = self.model(images)
-                loss = self.criterion(outputs, masks)
+                with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                    outputs = self.model(images)
+                    loss = self.criterion(outputs, masks)
                 loss.backward()
                 self.optimizer.step()
-                total_loss += loss.item()
-                loop.set_postfix(loss=f"{loss.item():.4f}")
-                loop.update(len(images))
-        avg_loss = total_loss / len(self.train_loader)
-        self.logger.info(
-            f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s"
-        )
+                total_loss += loss.detach()
+                if self.rank == 0:
+                    loop.set_postfix(loss=f"{loss.item():.4f}")
+                    loop.update(len(images))
+        if self.ddp:
+            dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
+        if self.rank == 0:
+            avg_loss = (total_loss / len(self.train_loader)).item()
+            self.logger.info(
+                f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s"
+            )
         return avg_loss
     
     def validate_epoch(self, epoch:int) -> float:
@@ -96,25 +109,31 @@ class Trainer:
             float: Average validation loss over the epoch.
         """
         self.model.eval()
-        total_loss = 0.0
-        loop = tqdm.tqdm(
-            total=len(self.val_loader.dataset),
-            desc=f"Validate epoch {epoch}",
-            unit=" samples",
-            bar_format=self._bar_format
-        )
-        with torch.no_grad(), Timer() as t:
+        total_loss = torch.tensor(0.0, device=self.device)
+        if self.rank == 0:
+            loop = tqdm.tqdm(
+                total=len(self.val_loader.dataset),
+                desc=f"Validate epoch {epoch}",
+                unit=" samples",
+                bar_format=self._bar_format
+            )
+        with (Timer() if self.rank == 0 else nullcontext()) as t:
             for images, masks in self.val_loader:
                 images, masks = images.to(self.device), masks.to(self.device)
-                outputs = self.model(images)
-                loss = self.criterion(outputs, masks)
-                total_loss += loss.item()
-                loop.set_postfix(loss=f"{loss.item():.4f}")
-                loop.update(len(images))
-        avg_loss = total_loss / len(self.val_loader)
-        self.logger.info(
-            f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {self._val_samples / t.elapsed:.2f} samples/s"
-        )
+                with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                    outputs = self.model(images)
+                    loss = self.criterion(outputs, masks)
+                total_loss += loss.detach()
+                if self.rank == 0:
+                    loop.set_postfix(loss=f"{loss.item():.4f}")
+                    loop.update(len(images))
+        if self.ddp:
+            dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
+        if self.rank == 0:
+            avg_loss = (total_loss / len(self.val_loader)).item()
+            self.logger.info(
+                f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {self._val_samples / t.elapsed:.2f} samples/s"
+            )
         return avg_loss
     
     def save_checkpoint(self, epoch: int) -> None:
