@@ -1,5 +1,6 @@
 import os
 from contextlib import nullcontext
+from typing import Optional
 
 import torch
 import torch.distributed as dist
@@ -89,12 +90,18 @@ class Trainer:
                 if self.rank == 0:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
                     loop.update(len(images))
+        
         if self.ddp:
             dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
         if self.rank == 0:
+            memory_usage = torch.tensor(
+                [torch.cuda.memory_allocated(i) / 1024**2 for i in range(self.world_size)]
+            )
+            memory_log = " | ".join([f"Rank {i}: {memory_usage[i]:.2f}MB" for i in range(self.world_size)])
             avg_loss = (total_loss / len(self.train_loader)).item()
             self.logger.info(
-                f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s"
+                f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s\n"
+                f"Memory usage: {memory_log} | Total: {memory_usage.sum():.2f}MB"
             )
         return avg_loss
     
@@ -136,22 +143,23 @@ class Trainer:
             )
         return avg_loss
     
-    def save_checkpoint(self, epoch: int) -> None:
+    def save_checkpoint(self, epoch: int, raw_model: Optional[object] = None) -> None:
         """
         Saves the model and optimizer state for the given epoch.
 
         Args:
             epoch (int): Epoch number to include in the checkpoint filename.
-
+            raw_model (Optional[object]): non ddp wrapped model
         Returns:
             None
         """
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         filename = f"chkpt_epoch_{epoch}.pth"
         checkpoint_path = os.path.join(self.checkpoint_dir, filename)
+        state_dict = raw_model.state_dict() if raw_model else self.model.state_dict()
         torch.save({
             "epoch": epoch,
-            "model_state_dict": self.model.state_dict(),
+            "model_state_dict": state_dict,
             "optimizer_state_dict": self.optimizer.state_dict(),
         }, checkpoint_path)
 

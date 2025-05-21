@@ -93,7 +93,7 @@ def train_ddp(
         trainer.train_epoch(epoch)
         val_loss = trainer.validate_epoch(epoch)
         if rank == 0:
-            trainer.save_checkpoint(epoch)
+            trainer.save_checkpoint(epoch, raw_model)
             if val_loss < trainer.best_val_loss:
                 trainer.best_checkpoint = epoch
                 trainer.best_val_loss = val_loss
