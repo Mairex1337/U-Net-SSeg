@@ -192,8 +192,8 @@ class PadIfSmaller:
         top    = h_pad // 2
         bottom = h_pad - top
 
-        img = F.pad(img, [left, top, bottom, right], fill=255)
-        mask = F.pad(mask, [left, top, bottom, right], fill=255)
+        img = F.pad(img, [left, top, right, bottom], fill=255)
+        mask = F.pad(mask, [left, top, right, bottom], fill=255)
         return img, mask
 
 
