@@ -75,13 +75,14 @@ def get_dataloader(
     else:
         sampler = None
 
+    num_workers = os.cpu_count() // (2 * world_size)
     dataloader = DataLoader(
         ds,
         batch_size=batch_size,
         shuffle=(split == "train") if sampler is None else False,
         sampler = sampler,
         pin_memory=(sampler is not None),
-        num_workers=os.cpu_count() // 2,
+        num_workers=num_workers,
     )
 
     return dataloader

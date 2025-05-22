@@ -2,7 +2,7 @@
 #SBATCH --time=07:00:00
 #SBATCH --partition=gpu
 #SBATCH --gpus-per-node=a100:4
-#SBATCH --job-name=test_job
+#SBATCH --job-name=unet-segmentation
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=64
 #SBATCH --mem=514404
