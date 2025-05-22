@@ -9,13 +9,11 @@
 
 module purge
 module load Python/3.13.1-GCCcore-14.2.0
-source $HOME/venvs/first_env/bin/activate
-#Do this before running the job:
-#       pip install -r $HOME/jobs/unet_sseg/requirements.txt
+cp -r $HOME/venvs/sem-seg $TMPDIR/
+source $TMPDIR/sem-seg/bin/activate
 
-
-cp -r $HOME/jobs/unet_sseg/data $TMPDIR/
-cd $HOME/jobs/unet_sseg
+cp -r $HOME/jobs/U-Net-SSeg/data $TMPDIR/
+cd $HOME/jobs/U-Net-SSeg
 
 python3 -m scripts.find_batch_size --model unet
 rm -rf $TMPDIR/outputs/unet

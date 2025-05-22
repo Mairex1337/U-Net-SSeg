@@ -29,7 +29,7 @@ def find_batch_size(
             cfg = read_config()
             cfg['hyperparams'][model_name]['batch_size'] = batch_size
             if rank == 0:
-                run_dir = get_run_dir(cfg['runs'][model_name], model_name, f"{os.environ["TMPDIR"]}/outputs")
+                run_dir = get_run_dir(cfg['runs'][model_name], model_name)
                 chkpt_dir = os.path.join(run_dir, 'checkpoints')
                 logger = get_logger(run_dir, "training.log")
 

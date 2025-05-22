@@ -27,7 +27,7 @@ def train_ddp(
     cfg = read_config()
 
     if rank == 0:
-        run_dir = get_run_dir(cfg['runs'][model_name], model_name, f"{os.environ["TMPDIR"]}/outputs")
+        run_dir = get_run_dir(cfg['runs'][model_name], model_name)
         chkpt_dir = os.path.join(run_dir, 'checkpoints')
         # save copy of cfg.yaml in run dir
         with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:

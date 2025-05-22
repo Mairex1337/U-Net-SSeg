@@ -92,7 +92,7 @@ if __name__ == '__main__':
     cfg = read_config()
     device = get_device()
     model = get_model(cfg, args.model).to(device)
-    run_dir = get_run_dir(args.run_id, args.model, resolve_path('outputs/'))
+    run_dir = get_run_dir(args.run_id, args.model)
     logger = get_logger(run_dir, "eval.log")
 
     checkpoints_dir = os.path.join(run_dir, "checkpoints")

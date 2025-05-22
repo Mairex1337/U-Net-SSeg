@@ -15,7 +15,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
     """Pipeline for training on a single device"""
     cfg = read_config()
 
-    run_dir = get_run_dir(cfg['runs'][model_name], model_name, resolve_path("outputs/"))
+    run_dir = get_run_dir(cfg['runs'][model_name], model_name)
     chkpt_dir = os.path.join(run_dir, 'checkpoints')
     # save copy of cfg.yaml in run dir
     with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
