@@ -46,6 +46,8 @@ data:
   train_masks: data/bdd100k/labels/sem_seg/masks/train/
   val_images: data/bdd100k/images/10k/val/
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
+  test_images: data/bdd100k/images/10k/test/
+  test_masks: data/bdd100k/labels/sem_seg/masks/test/
 hyperparams:
   baseline:
     batch_size: 16

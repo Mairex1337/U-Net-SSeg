@@ -17,7 +17,7 @@ def calculate_class_distribution() -> None:
 
     colormap_id = cfg['class_distribution']["id_to_class"]
 
-    train_loader = get_dataloader(cfg=cfg, train=True, batch_size=8, debug=False, stats=True)
+    train_loader = get_dataloader(cfg=cfg, split="train", batch_size=8, stats=True)
     pixel_counts = defaultdict(int)
 
     for _ , masks in train_loader:

@@ -50,14 +50,14 @@ def train_ddp(
 
     train_loader = get_dataloader(
         cfg,
-        train=True,
+        split="train",
         world_size=world_size,
         rank=rank,
         batch_size=hyperparams['batch_size']
     )
     val_loader = get_dataloader(
         cfg,
-        train=False,
+        split="val",
         world_size=world_size,
         rank=rank,
         batch_size=hyperparams['batch_size']

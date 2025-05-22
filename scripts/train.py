@@ -29,12 +29,12 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
     train_loader = get_dataloader(
         cfg,
-        train=True,
+        split="train",
         batch_size=hyperparams['batch_size']
     )
     val_loader = get_dataloader(
         cfg,
-        train=False,
+        split="val",
         batch_size=hyperparams['batch_size']
     )
 
