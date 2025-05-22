@@ -10,11 +10,9 @@ import yaml
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
-from src.models import baseline_model
 from src.training import Trainer, get_weighted_criterion
-from src.utils import (cleanup, get_logger, get_model, get_run_dir,
-                       read_config, resolve_path, setup_ddp_process,
-                       write_config)
+from src.utils import (get_logger, get_model, get_run_dir, read_config,
+                       setup_ddp_process, write_config)
 
 
 def train_ddp(

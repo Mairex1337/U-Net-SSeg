@@ -8,7 +8,7 @@ import yaml
 from src.data import get_dataloader
 from src.training import Trainer, get_weighted_criterion
 from src.utils import (get_device, get_logger, get_model, get_run_dir,
-                       read_config, resolve_path, write_config)
+                       read_config, write_config)
 
 
 def train(model_name: Literal['baseline', 'unet']) -> None:
