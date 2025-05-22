@@ -88,6 +88,8 @@ def train_ddp(
     logger.info(f"Starting training with model: {model_name}, fused available: {fused_available}")
 
     for epoch in range(1, hyperparams['epochs'] + 1):
+        if isinstance(train_loader.sampler, torch.utils.data.DistributedSampler):
+            train_loader.sampler.set_epoch(epoch)
         trainer.train_epoch(epoch)
         val_loss = trainer.validate_epoch(epoch)
         if rank == 0:
@@ -101,8 +103,7 @@ def train_ddp(
         # increment run_id
         run_id = int(cfg['runs'][model_name])
         cfg['runs'][model_name] = str(run_id + 1)
-
-    write_config(cfg)
+        write_config(cfg)
     
     dist.destroy_process_group()
 

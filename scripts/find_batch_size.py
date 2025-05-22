@@ -6,7 +6,6 @@ from typing import Literal
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
-import yaml
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
@@ -41,7 +40,6 @@ def find_batch_size(
 
             hyperparams = cfg['hyperparams'][f'{model_name}']
             model = get_model(cfg, model_name).to(rank)
-            model = torch.compile(model)
             raw_model = model
             model = DDP(model, device_ids=[rank])
 
@@ -84,7 +82,8 @@ def find_batch_size(
                 rank=rank
             )
 
-
+            if isinstance(train_loader.sampler, torch.utils.data.DistributedSampler):
+                train_loader.sampler.set_epoch(1)
             trainer.train_epoch(1)
 
             del model, raw_model, trainer, train_loader, val_loader
