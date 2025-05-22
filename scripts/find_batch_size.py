@@ -17,7 +17,7 @@ from src.utils import (cleanup, get_logger, get_model, get_run_dir,
                        write_config)
 
 
-def train_ddp(
+def find_batch_size(
         rank: int,
         world_size: int,
         model_name: Literal['baseline', 'unet']
@@ -31,9 +31,6 @@ def train_ddp(
             if rank == 0:
                 run_dir = get_run_dir(cfg['runs'][model_name], model_name, f"{os.environ["TMPDIR"]}/outputs")
                 chkpt_dir = os.path.join(run_dir, 'checkpoints')
-                # save copy of cfg.yaml in run dir
-                with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
-                    yaml.dump(cfg, f, default_flow_style=False)
                 logger = get_logger(run_dir, "training.log")
 
             # not used on other ranks apart from rank 0
@@ -116,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, choices=['baseline', 'unet'], required=True)
     args = parser.parse_args()
     world_size = torch.cuda.device_count()
-    mp.spawn(train_ddp,
+    mp.spawn(find_batch_size,
             args=(world_size, args.model,),
             nprocs=world_size,
             join=True)

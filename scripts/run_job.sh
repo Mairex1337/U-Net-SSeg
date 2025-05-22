@@ -18,6 +18,7 @@ cp -r $HOME/jobs/unet_sseg/data $TMPDIR/
 cd $HOME/jobs/unet_sseg
 
 python3 -m scripts.find_batch_size --model unet
+rm -rf $TMPDIR/outputs/unet
 python3 -m scripts.train_ddp --model unet
 python3 -m scripts.eval --model unet --run 1
 
