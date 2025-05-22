@@ -55,9 +55,8 @@ def resolve_path(path: str) -> str:
     return abs_path
 
 
-def get_run_dir(run_id: str, model_name: str) -> str:
+def get_run_dir(run_id: str, model_name: str, base_path: str) -> str:
     """Get the run directory for saving logs and checkpoints"""
-    base_path = resolve_path("outputs/")
     run_directory = os.path.join(base_path, model_name, run_id)
     os.makedirs(run_directory, exist_ok=True)
     return run_directory

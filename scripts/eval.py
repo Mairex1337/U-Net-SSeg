@@ -4,10 +4,12 @@ from typing import Dict, Union
 
 import torch
 import tqdm
-from src.data import get_dataloader
-from src.utils import Timer, get_device, get_model, get_run_dir, read_config, get_logger, get_best_checkpoint
 from torch.utils.data import DataLoader
 from torchmetrics.classification import JaccardIndex, MulticlassF1Score
+
+from src.data import get_dataloader
+from src.utils import (Timer, get_best_checkpoint, get_device, get_logger,
+                       get_model, get_run_dir, read_config, resolve_path)
 
 
 def evaluate_model(
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     cfg = read_config()
     device = get_device()
     model = get_model(cfg, args.model).to(device)
-    run_dir = get_run_dir(args.run_id, args.model)
+    run_dir = get_run_dir(args.run_id, args.model, resolve_path('outputs/'))
     logger = get_logger(run_dir, "eval.log")
 
     checkpoints_dir = os.path.join(run_dir, "checkpoints")

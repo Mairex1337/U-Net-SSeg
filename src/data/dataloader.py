@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, DistributedSampler
 from src.data.dataset import SegmentationDataset
 from src.data.transforms import (get_stats_transforms, get_train_transforms,
                                  get_val_transforms)
+from src.utils import resolve_path
 
 
 def get_dataloader(
@@ -35,6 +36,11 @@ def get_dataloader(
     """
     img_dir = cfg['data']['train_images'] if train else cfg['data']['val_images']
     mask_dir = cfg['data']['train_masks'] if train else cfg['data']['val_masks']
+    if world_size > 1:
+        img_dir = os.path.join(os.environ("$TMPDIR"), img_dir)
+        mask_dir = os.path.join(os.environ("$TMPDIR"), mask_dir)
+    else:
+        img_dir, mask_dir = resolve_path(img_dir), resolve_path(mask_dir)
     if stats:
         transforms = get_stats_transforms(cfg['transforms'])
     else:
