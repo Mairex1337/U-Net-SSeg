@@ -91,7 +91,7 @@ def find_batch_size(
 
             batch_size *= 2
         
-    except RuntimeError as e:
+    except torch.cuda.OutOfMemoryError as e:
         if "CUDA out of memory" in str(e):
             torch.cuda.empty_cache()
             if rank == 0:
