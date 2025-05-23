@@ -9,7 +9,7 @@ from torchmetrics.classification import JaccardIndex, MulticlassF1Score
 
 from src.data import get_dataloader
 from src.utils import (Timer, get_best_checkpoint, get_device, get_logger,
-                       get_model, get_run_dir, read_config, resolve_path)
+                       get_model, get_run_dir, read_config, log_metrics, SegmentationMetrics)
 
 
 def evaluate_model(
@@ -19,17 +19,19 @@ def evaluate_model(
     num_classes: int
 ) -> Dict[str, Union[float, torch.Tensor]]:
     """
-    Evaluate a semantic segmentation model using per-class and mean IoU and Dice scores.
+    Evaluate a semantic segmentation model using multiple metrics.
 
-    This function uses `torchmetrics.JaccardIndex` for computing per-class Intersection over Union (IoU),
-    and `torchmetrics.MulticlassF1Score` to compute the per-class Dice score.
+    This function evaluates a trained model on a given dataset using several performance metrics:
+    - Intersection over Union (IoU)
+    - Dice Score (F1-score)
+    - Precision
+    - Recall
+    - Pixel Accuracy (micro accuracy)
+    - Mean Accuracy (macro accuracy)
 
-    Note:
-        Dice score is mathematically equivalent to the F1-score in the multiclass setting:
-        Dice = 2 * TP / (2 * TP + FP + FN) == F1.
-        `MulticlassF1Score` accepts class-index inputs (e.g., shape [B, H, W]), which aligns with the
-        output format of typical semantic segmentation tasks. On the other hand, `torchmetrics.DiceScore`
-        expects one-hot encoded masks or multi-label inputs, making it incompatible with class index masks.
+    Metrics are computed using class-index inputs (i.e., shape [B, H, W]), which align with the
+    format of most semantic segmentation model outputs. All metrics are accumulated across the
+    entire dataset and returned in a single dictionary.
 
     Args:
         model (torch.nn.Module): The trained segmentation model to evaluate.
@@ -38,16 +40,19 @@ def evaluate_model(
         num_classes (int): Number of classes in the segmentation task.
 
     Returns:
-        Dict[str, Union[float, torch.Tensor]]: A dictionary with:
-            - 'IoU_per_class': Per-class IoU (Intersection over Union).
-            - 'Dice_per_class': Per-class Dice scores (F1-score equivalent).
-            - 'mIoU': Mean IoU across all classes.
-            - 'mDice': Mean Dice score across all classes.
+        Dict[str, Union[float, torch.Tensor]]: A dictionary containing:
+            - 'IoU_per_class' (Tensor): Per-class Intersection over Union.
+            - 'Dice_per_class' (Tensor): Per-class Dice (F1) score.
+            - 'Precision_per_class' (Tensor): Per-class precision.
+            - 'Recall_per_class' (Tensor): Per-class recall.
+            - 'Pixel_Accuracy' (float): Overall pixel accuracy.
+            - 'Mean_Accuracy' (float): Mean class-wise accuracy.
+            - 'mIoU' (float): Mean Intersection over Union.
+            - 'mDice' (float): Mean Dice (F1) score.
     """
     model.eval()
 
-    iou_metric = JaccardIndex(task="multiclass", num_classes=num_classes, average=None).to(device)
-    dice_metric = MulticlassF1Score(num_classes=num_classes, average=None).to(device)
+    metrics = SegmentationMetrics(num_classes=num_classes, device=device)
 
     loop = tqdm.tqdm(
         total=len(dataloader.dataset),
@@ -64,23 +69,11 @@ def evaluate_model(
                 outputs = model(images)
                 preds = torch.argmax(outputs, dim=1)
 
-                iou_metric.update(preds, masks)
-                dice_metric.update(preds, masks)
+                metrics.update(preds, masks)
 
                 loop.update(len(images))
 
-    iou_per_class = iou_metric.compute().cpu()
-    dice_per_class = dice_metric.compute().cpu()
-
-    mean_iou = iou_per_class.mean()
-    mean_dice = dice_per_class.mean()
-
-    return {
-        "IoU_per_class": iou_per_class,
-        "Dice_per_class": dice_per_class,
-        "mIoU": mean_iou.item(),
-        "mDice": mean_dice.item()
-    }
+    return metrics.compute()
 
 
 if __name__ == '__main__':
@@ -103,12 +96,4 @@ if __name__ == '__main__':
     dataloader = get_dataloader(cfg=cfg, split="test")
 
     results = evaluate_model(model, dataloader, device, cfg['hyperparams'][args.model]['num_classes'])
-
-    logger.info("Evaluation Results:")
-    logger.info(f"Mean IoU: {results['mIoU']:.4f}")
-    logger.info(f"Mean Dice: {results['mDice']:.4f}")
-    logger.info("\nPer-Class Evaluation Metrics:")
-    logger.info(f"{'Class':<18}{'IoU':>10}{'Dice':>10}")
-    logger.info("-" * 38)
-    for idx, (iou, dice) in enumerate(zip(results['IoU_per_class'], results['Dice_per_class'])):
-        logger.info(f"{idx:<4}{cfg['class_distribution']['id_to_class'][idx]:<14}{iou.item():>10.4f}{dice.item():>10.4f}")
+    log_metrics(results, logger)
