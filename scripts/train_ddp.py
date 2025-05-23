@@ -32,6 +32,7 @@ def train_ddp(
         None
     """
     setup_ddp_process(rank, world_size)
+    torch.set_float32_matmul_precision("high")
 
     cfg = read_config()
 
@@ -115,7 +116,7 @@ def train_ddp(
         run_id = int(cfg['runs'][model_name])
         cfg['runs'][model_name] = str(run_id + 1)
         write_config(cfg)
-    
+
     dist.destroy_process_group()
 
 if __name__ == '__main__':
@@ -127,4 +128,3 @@ if __name__ == '__main__':
             args=(world_size, args.model,),
             nprocs=world_size,
             join=True)
-
