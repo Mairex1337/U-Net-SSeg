@@ -1,23 +1,22 @@
 import argparse
 import os
-from typing import Dict, Union
 
 import torch
 import tqdm
 from torch.utils.data import DataLoader
-from torchmetrics.classification import JaccardIndex, MulticlassF1Score
 
 from src.data import get_dataloader
-from src.utils import (Timer, get_best_checkpoint, get_device, get_logger,
-                       get_model, get_run_dir, read_config, log_metrics, SegmentationMetrics)
+from src.utils import (SegmentationMetrics, Timer, get_best_checkpoint,
+                       get_device, get_logger, get_model, get_run_dir,
+                       read_config)
 
 
 def evaluate_model(
     model: torch.nn.Module,
     dataloader: DataLoader,
-    device: torch.device,
+    device: str,
     num_classes: int
-) -> Dict[str, Union[float, torch.Tensor]]:
+) -> None:
     """
     Evaluate a semantic segmentation model using multiple metrics.
 
@@ -29,26 +28,14 @@ def evaluate_model(
     - Pixel Accuracy (micro accuracy)
     - Mean Accuracy (macro accuracy)
 
-    Metrics are computed using class-index inputs (i.e., shape [B, H, W]), which align with the
-    format of most semantic segmentation model outputs. All metrics are accumulated across the
-    entire dataset and returned in a single dictionary.
-
     Args:
         model (torch.nn.Module): The trained segmentation model to evaluate.
         dataloader (DataLoader): DataLoader providing evaluation data.
-        device (torch.device): The device (CPU or GPU) for evaluation.
+        device (str): The device used.
         num_classes (int): Number of classes in the segmentation task.
 
     Returns:
-        Dict[str, Union[float, torch.Tensor]]: A dictionary containing:
-            - 'IoU_per_class' (Tensor): Per-class Intersection over Union.
-            - 'Dice_per_class' (Tensor): Per-class Dice (F1) score.
-            - 'Precision_per_class' (Tensor): Per-class precision.
-            - 'Recall_per_class' (Tensor): Per-class recall.
-            - 'Pixel_Accuracy' (float): Overall pixel accuracy.
-            - 'Mean_Accuracy' (float): Mean class-wise accuracy.
-            - 'mIoU' (float): Mean Intersection over Union.
-            - 'mDice' (float): Mean Dice (F1) score.
+        None
     """
     model.eval()
 
@@ -72,8 +59,9 @@ def evaluate_model(
                 metrics.update(preds, masks)
 
                 loop.update(len(images))
-
-    return metrics.compute()
+    results = metrics.compute()
+    metrics.log_metrics(results)
+    return
 
 
 if __name__ == '__main__':
@@ -95,5 +83,4 @@ if __name__ == '__main__':
 
     dataloader = get_dataloader(cfg=cfg, split="test")
 
-    results = evaluate_model(model, dataloader, device, cfg['hyperparams'][args.model]['num_classes'])
-    log_metrics(results, logger)
+    evaluate_model(model, dataloader, device, cfg['hyperparams'][args.model]['num_classes'])

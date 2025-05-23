@@ -1,11 +1,10 @@
-from torchmetrics.classification import (
-    MulticlassPrecision,
-    MulticlassRecall,
-    MulticlassAccuracy,
-    MulticlassF1Score,
-    JaccardIndex
-)
+import logging
+
 import torch
+import torchmetrics.classification as metric
+
+from src.utils.path import read_config
+
 
 class SegmentationMetrics:
     """
@@ -23,21 +22,14 @@ class SegmentationMetrics:
         self.num_classes = num_classes
         self.device = device
 
-        self.iou = JaccardIndex(task="multiclass", num_classes=num_classes, average=None).to(device)
-        self.dice = MulticlassF1Score(num_classes=num_classes, average=None).to(device)
-        self.precision = MulticlassPrecision(num_classes=num_classes, average=None).to(device)
-        self.recall = MulticlassRecall(num_classes=num_classes, average=None).to(device)
-        self.pixel_accuracy = MulticlassAccuracy(num_classes=num_classes, average='micro').to(device)
-        self.mean_accuracy = MulticlassAccuracy(num_classes=num_classes, average='macro').to(device)
-
-        self.metrics = [
-            self.iou,
-            self.dice,
-            self.precision,
-            self.recall,
-            self.pixel_accuracy,
-            self.mean_accuracy,
-        ]
+        self.metrics = {
+            "iou" : metric.JaccardIndex(task="multiclass", num_classes=num_classes, ignore_index=255, average=None).to(device),
+            "dice" : metric.MulticlassF1Score(num_classes=num_classes, ignore_index=255, average=None).to(device),
+            "precision" : metric.MulticlassPrecision(num_classes=num_classes, ignore_index=255, average=None).to(device),
+            "recall" : metric.MulticlassRecall(num_classes=num_classes, ignore_index=255, average=None).to(device),
+            "pixel_accuracy" : metric.MulticlassAccuracy(num_classes=num_classes, ignore_index=255, average='micro').to(device),
+            "mean_accuracy" : metric.MulticlassAccuracy(num_classes=num_classes, ignore_index=255, average='macro').to(device)
+        }
 
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
         """
@@ -47,36 +39,28 @@ class SegmentationMetrics:
             preds (torch.Tensor): Predicted class indices of shape (B, H, W)
             targets (torch.Tensor): Ground truth class indices of shape (B, H, W)
         """
-        preds_flat = preds.view(-1)
-        targets_flat = targets.view(-1)
+        preds = preds.flatten()
+        targets = targets.flatten()
 
-        for metric in self.metrics:
-            metric.update(preds_flat, targets_flat)
+        for metric in self.metrics.values():
+            metric.update(preds, targets)
 
     def compute(self) -> dict:
         """
         Compute all aggregated and per-class metrics.
 
         Returns:
-            dict: A dictionary containing:
-                - 'IoU_per_class' (Tensor): Per-class IoU values.
-                - 'Dice_per_class' (Tensor): Per-class Dice/F1 scores.
-                - 'Precision_per_class' (Tensor): Per-class precision.
-                - 'Recall_per_class' (Tensor): Per-class recall.
-                - 'Pixel_Accuracy' (float): Overall pixel-level accuracy.
-                - 'Mean_Accuracy' (float): Mean per-class accuracy.
-                - 'mIoU' (float): Mean IoU over all classes.
-                - 'mDice' (float): Mean Dice/F1 score over all classes.
+            dict: A dictionary containing evaluation results.
         """
         return {
-            "IoU_per_class": self.iou.compute().cpu(),
-            "Dice_per_class": self.dice.compute().cpu(),
-            "Precision_per_class": self.precision.compute().cpu(),
-            "Recall_per_class": self.recall.compute().cpu(),
-            "Pixel_Accuracy": self.pixel_accuracy.compute().item(),
-            "Mean_Accuracy": self.mean_accuracy.compute().item(),
-            "mIoU": self.iou.compute().mean().item(),
-            "mDice": self.dice.compute().mean().item()
+            "IoU_per_class": self.metrics["iou"].compute(),
+            "Dice_per_class": self.metrics["dice"].compute(),
+            "Precision_per_class": self.metrics["precision"].compute(),
+            "Recall_per_class": self.metrics["recall"].compute(),
+            "Pixel_Accuracy": self.metrics["pixel_accuracy"].compute().item(),
+            "Mean_Accuracy": self.metrics["mean_accuracy"].compute().item(),
+            "mIoU": self.metrics["iou"].compute().mean().item(),
+            "mDice": self.metrics["dice"].compute().mean().item()
         }
 
     def reset(self):
@@ -85,3 +69,40 @@ class SegmentationMetrics:
         """
         for metric in self.metrics:
             metric.reset()
+
+ 
+    def log_metrics(self, results: dict, logger: logging.Logger) -> None:
+        """
+        Logs evaluation metrics for semantic segmentation.
+
+        This function prints overall metrics (e.g., pixel accuracy, mean accuracy, mean IoU, mean Dice)
+        and detailed per-class metrics including IoU, Dice (F1), precision, and recall.
+
+        Args:
+            results (Dict): A dictionary containing evaluation results.
+
+            logger (logging.Logger):
+                The logger instance used to write the output to a file or console.
+
+        Returns:
+            None
+        """
+        cfg = read_config()
+
+        logger.info("Evaluation Results:")
+        logger.info(f"{'Pixel Accuracy:':<25}{results['Pixel_Accuracy']:.4f}")
+        logger.info(f"{'Mean Accuracy:':<25}{results['Mean_Accuracy']:.4f}")
+        logger.info(f"{'Mean IoU:':<25}{results['mIoU']:.4f}")
+        logger.info(f"{'Mean Dice (F1):':<25}{results['mDice']:.4f}")
+        logger.info("\nPer-Class Evaluation Metrics:")
+        logger.info(f"{'Class':<18}{'IoU':>10}{'Dice':>10}{'Prec.':>10}{'Recall':>10}")
+        logger.info("-" * 58)
+
+        for idx, (iou, dice, prec, recall) in enumerate(zip(
+            results['IoU_per_class'],
+            results['Dice_per_class'],
+            results['Precision_per_class'],
+            results['Recall_per_class']
+        )):
+            class_name = cfg['class_distribution']['id_to_class'].get(idx, f"Class {idx}")
+            logger.info(f"{class_name:<18}{iou.item():>10.4f}{dice.item():>10.4f}{prec.item():>10.4f}{recall.item():>10.4f}")
