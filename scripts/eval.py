@@ -78,7 +78,7 @@ if __name__ == '__main__':
     checkpoint_path = get_best_checkpoint(checkpoints_dir)
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint["model_state_dict"])
+    hyperparams = cfg["hyperparams"][args.model]
+    dataloader = get_dataloader(cfg=cfg, split="test", batch_size=cfg["batch_size"])
 
-    dataloader = get_dataloader(cfg=cfg, split="test")
-
-    evaluate_model(model, dataloader, device, cfg['hyperparams'][args.model]['num_classes'])
+    evaluate_model(model, dataloader, device, hyperparams['num_classes'])
