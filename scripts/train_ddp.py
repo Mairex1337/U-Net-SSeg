@@ -21,7 +21,7 @@ def train_ddp(
         model_name: Literal['baseline', 'unet']
 ) -> None:
     """
-    Finds the maximum fittable batch size for the hardware used.
+    Dispatch a distributed training job for the specified model.
 
     Args:
         rank (int): Rank of the device
