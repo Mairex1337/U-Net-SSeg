@@ -6,9 +6,8 @@ import tqdm
 from torch.utils.data import DataLoader
 
 from src.data import get_dataloader
-from src.utils import (SegmentationMetrics, Timer, get_best_checkpoint,
-                       get_device, get_logger, get_model, get_run_dir,
-                       read_config)
+from src.utils import (SegmentationMetrics, get_best_checkpoint, get_device,
+                       get_logger, get_model, get_run_dir, read_config)
 
 
 def evaluate_model(
@@ -47,18 +46,17 @@ def evaluate_model(
         bar_format="{l_bar}{bar} | {n_fmt}/{total_fmt} [{rate_fmt} {postfix}]"
     )
 
-    with Timer() as t:
-        with torch.no_grad():
-            for images, masks in dataloader:
-                images = images.to(device)
-                masks = masks.to(device)
+    with torch.no_grad():
+        for images, masks in dataloader:
+            images = images.to(device)
+            masks = masks.to(device)
 
-                outputs = model(images)
-                preds = torch.argmax(outputs, dim=1)
+            outputs = model(images)
+            preds = torch.argmax(outputs, dim=1)
 
-                metrics.update(preds, masks)
+            metrics.update(preds, masks)
 
-                loop.update(len(images))
+            loop.update(len(images))
     results = metrics.compute()
     metrics.log_metrics(results)
     return
