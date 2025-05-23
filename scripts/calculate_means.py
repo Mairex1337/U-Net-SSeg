@@ -12,7 +12,7 @@ def calculate_mean_std() -> None:
     """
     cfg = read_config()
 
-    train_loader = get_dataloader(cfg=cfg, train=True, batch_size=8, debug=False, stats=True)
+    train_loader = get_dataloader(cfg=cfg, split="train", batch_size=8, stats=True)
 
     channel_sums = torch.zeros(3)
     channel_sqr_sums = torch.zeros(3)

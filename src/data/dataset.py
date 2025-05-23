@@ -6,7 +6,6 @@ from torch import Tensor
 from torchvision.transforms.functional import pil_to_tensor, to_tensor
 
 from src.data.transforms import Compose
-from src.utils import resolve_path
 
 
 class SegmentationDataset(data.Dataset):
@@ -17,8 +16,8 @@ class SegmentationDataset(data.Dataset):
     and returns them as tensors.
 
     Args:
-        img_dir (str): Relative path to image directory.
-        mask_dir (str): Relative path to mask directory.
+        img_dir (str): Absolute path to image directory.
+        mask_dir (str): Absolute path to mask directory.
         transforms (Compose): Sequence of transforms applied to image-mask pairs.
         debug (bool): Flag to indicate debug mode in which __getitem__ also returns
             the original image and mask without transformations.
@@ -34,8 +33,8 @@ class SegmentationDataset(data.Dataset):
             debug: bool = False 
     ) -> None:
         self.transforms = transforms
-        self.img_dir = resolve_path(img_dir)
-        self.mask_dir = resolve_path(mask_dir)
+        self.img_dir = img_dir
+        self.mask_dir = mask_dir
         self.debug = debug
         self.img_idx = sorted([
             os.path.splitext(f)[0] for f in os.listdir(self.img_dir)

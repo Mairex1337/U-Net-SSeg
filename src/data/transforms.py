@@ -143,8 +143,8 @@ class RandomScale:
         Resize both img and mask.
 
         Args:
-            img (Image.Image): Image tensor.
-            mask (Image.Image): Corresponding mask.
+            img (Image.Image): Image
+            mask (Image.Image): Corresponding mask
 
         Returns:
             Tuple[Image.Image, Image.Image]: Randomly resized image and mask.
@@ -166,32 +166,34 @@ class PadIfSmaller:
     Pad image and mask to min_size if smaller.
 
     Args:
-        min_size (float): minimum resize
-        max_size  (float): maximum resize
-        og_size (list[int]): original img, mask size.
+        min_size (float): minimum size needed for crop
     """
     def __init__(self, min_size: list[int]) -> None:
-        self.min_size = min_size
+        self.min_h, self.min_w = min_size
 
     def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
         """
         Pad image and mask.
 
         Args:
-            img (Tensor): Image tensor.
-            mask (Tensor): Corresponding mask.
+            img (Image.Image): Image
+            mask (Image.Image): Corresponding mask
 
         Returns:
-            Tuple[Tensor, Tensor]: Padded image and mask.
+            Tuple[Image.Image, Image.Image]: Padded image and mask.
         """
         assert img.size == mask.size
         w, h = img.size
-        h_e, w_e = self.min_size
-        h_pad = max(0, h_e - h)
-        w_pad = max(0, w_e - w)
+        h_pad = max(0, self.min_h - h)
+        w_pad = max(0, self.min_w - w)
 
-        img = F.pad(img, [w_pad // 2, h_pad // 2], fill=255)
-        mask = F.pad(mask, [w_pad // 2, h_pad // 2], fill=255)
+        left   = w_pad // 2
+        right  = w_pad - left
+        top    = h_pad // 2
+        bottom = h_pad - top
+
+        img = F.pad(img, [left, top, right, bottom], fill=255)
+        mask = F.pad(mask, [left, top, right, bottom], fill=255)
         return img, mask
 
 
@@ -203,14 +205,14 @@ class RandomCrop:
         crop_size (tuple[int, int]): goal crop size.
     """
     def __init__(self, crop_size: tuple[int, int]) -> None:
-        self.h, self.w = crop_size[0], crop_size[1]
+        self.h, self.w = crop_size
 
     def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
         """
         Crop both img and mask.
 
         Args:
-            img (Image.Image): Image tensor.
+            img (Image.Image): Image
             mask (Image.Image): Corresponding mask.
 
         Returns:
