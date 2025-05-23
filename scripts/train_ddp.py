@@ -20,6 +20,17 @@ def train_ddp(
         world_size: int,
         model_name: Literal['baseline', 'unet']
 ) -> None:
+    """
+    Finds the maximum fittable batch size for the hardware used.
+
+    Args:
+        rank (int): Rank of the device
+        world_size (int): Number of total devices
+        model_name (Literal): String name of the model used
+
+    Returns:
+        None
+    """
     setup_ddp_process(rank, world_size)
 
     cfg = read_config()
