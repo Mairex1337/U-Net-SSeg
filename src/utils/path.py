@@ -55,9 +55,9 @@ def resolve_path(path: str) -> str:
     return abs_path
 
 
-def get_run_dir(run_id: str, model_name: str, use_tmpdir: bool = False) -> str:
+def get_run_dir(run_id: str, model_name: str) -> str:
     """Get the run directory for saving logs and checkpoints"""
-    if use_tmpdir and "TMPDIR" in os.environ:
+    if "SLURM_JOBID" in os.environ:
         base_path = os.environ["TMPDIR"]
     else:
         base_path = resolve_path("")
