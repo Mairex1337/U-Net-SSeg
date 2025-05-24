@@ -48,7 +48,7 @@ class SegmentationDataset(data.Dataset):
         """
         Load and return transformed image and mask at given index.
 
-        If self.debug == True, also returns original image and mask.
+        If self.debug == True, also returns original image, mask, and idx.
 
         Args:
             idx (int): Index of the sample to retrieve.
@@ -63,7 +63,7 @@ class SegmentationDataset(data.Dataset):
         if self.transforms:
             img_t, mask_t = self.transforms(img, mask)
         if self.debug:
-            return img_t, mask_t, to_tensor(img), pil_to_tensor(mask)
+            return img_t, mask_t, to_tensor(img), pil_to_tensor(mask), self.img_idx[idx]
         return img_t, mask_t
 
     def __len__(self) -> int:
