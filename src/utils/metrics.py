@@ -79,7 +79,7 @@ class SegmentationMetrics:
         and detailed per-class metrics including IoU, Dice (F1), precision, and recall.
 
         Args:
-            results (Dict): A dictionary containing evaluation results.
+            results (dict): A dictionary containing evaluation results.
 
             logger (logging.Logger):
                 The logger instance used to write the output to a file or console.

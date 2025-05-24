@@ -35,6 +35,7 @@ class Trainer:
             criterion,
             optimizer,
             logger,
+            metrics,
             checkpoint_dir: str,
             world_size: int = 0,
             rank: int = 0,
@@ -46,6 +47,7 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.logger = logger
+        self.metrics = metrics
         self.checkpoint_dir = checkpoint_dir
         self.world_size = world_size
         self.rank = rank
@@ -105,7 +107,7 @@ class Trainer:
             )
         return avg_loss
     
-    def validate_epoch(self, epoch:int) -> float:
+    def validate_epoch(self, epoch:int) -> dict:
         """
         Evaluates the model on the validation dataset.
 
@@ -113,9 +115,10 @@ class Trainer:
             epoch (int): Current epoch number, used for logging.
 
         Returns:
-            float: Average validation loss over the epoch.
+            dict: Key value pairs of all computed validation metrics.
         """
         self.model.eval()
+        self.metrics.reset()
         total_loss = torch.tensor(0.0, device=self.device)
         if self.rank == 0:
             loop = tqdm.tqdm(
@@ -124,24 +127,29 @@ class Trainer:
                 unit=" samples",
                 bar_format=self._bar_format
             )
-        with (Timer() if self.rank == 0 else nullcontext()) as t:
-            for images, masks in self.val_loader:
-                images, masks = images.to(self.device), masks.to(self.device)
-                with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
-                    outputs = self.model(images)
-                    loss = self.criterion(outputs, masks)
-                total_loss += loss.detach()
-                if self.rank == 0:
-                    loop.set_postfix(loss=f"{loss.item():.4f}")
-                    loop.update(len(images))
+        with torch.no_grad():
+            with (Timer() if self.rank == 0 else nullcontext()) as t:
+                for images, masks in self.val_loader:
+                    images, masks = images.to(self.device), masks.to(self.device)
+                    with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                        outputs = self.model(images)
+                        loss = self.criterion(outputs, masks)
+                    self.metrics.update(torch.argmax(outputs, dim=1), masks)
+                    total_loss += loss.detach()
+                    if self.rank == 0:
+                        loop.set_postfix(loss=f"{loss.item():.4f}")
+                        loop.update(len(images))
+        results = self.metrics.compute()
         if self.ddp:
             dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
+        avg_loss = (total_loss / len(self.val_loader)).item()
         if self.rank == 0:
-            avg_loss = (total_loss / len(self.val_loader)).item()
             self.logger.info(
                 f"Epoch {epoch} - Validation loss: {avg_loss:.4f} - Throughput: {self._val_samples / t.elapsed:.2f} samples/s"
             )
-        return avg_loss
+            self.metrics.log_metrics(results, self.logger)
+        results['loss'] = avg_loss
+        return results
     
     def save_checkpoint(self, epoch: int, raw_model: Optional[object] = None) -> None:
         """
