@@ -124,6 +124,106 @@ class Normalize:
         """
         return F.normalize(img, self.mean, self.std), mask.squeeze().long()
 
+class RandomScale:
+    """
+    Randomly resize both image and mask.
+
+    Args:
+        min_size (float): minimum resize
+        max_size  (float): maximum resize
+        og_size (list[int]): original img, mask size.
+    """
+    def __init__(self, min_size: float, max_size: float, og_size: list[int]) -> None:
+        self.min_size = min_size
+        self.max_size = max_size
+        self.og_size = og_size
+
+    def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
+        """
+        Resize both img and mask.
+
+        Args:
+            img (Image.Image): Image
+            mask (Image.Image): Corresponding mask
+
+        Returns:
+            Tuple[Image.Image, Image.Image]: Randomly resized image and mask.
+        """
+        num = random.uniform(self.min_size, self.max_size)
+        h, w = [int(round(x * num, 0)) for x in self.og_size]
+        if h % 2 != 0:
+            h += 1
+        if w % 2 != 0:
+            w += 1
+        size = [h, w]
+        img = F.resize(img, size)
+        mask = F.resize(mask, size, interpolation=F.InterpolationMode.NEAREST)
+        return img, mask
+    
+
+class PadIfSmaller:
+    """
+    Pad image and mask to min_size if smaller.
+
+    Args:
+        min_size (float): minimum size needed for crop
+    """
+    def __init__(self, min_size: list[int]) -> None:
+        self.min_h, self.min_w = min_size
+
+    def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
+        """
+        Pad image and mask.
+
+        Args:
+            img (Image.Image): Image
+            mask (Image.Image): Corresponding mask
+
+        Returns:
+            Tuple[Image.Image, Image.Image]: Padded image and mask.
+        """
+        assert img.size == mask.size
+        w, h = img.size
+        h_pad = max(0, self.min_h - h)
+        w_pad = max(0, self.min_w - w)
+
+        left   = w_pad // 2
+        right  = w_pad - left
+        top    = h_pad // 2
+        bottom = h_pad - top
+
+        img = F.pad(img, [left, top, right, bottom], fill=255)
+        mask = F.pad(mask, [left, top, right, bottom], fill=255)
+        return img, mask
+
+
+class RandomCrop:
+    """
+    Randomly crop both image and mask to goal size.
+
+    Args:
+        crop_size (tuple[int, int]): goal crop size.
+    """
+    def __init__(self, crop_size: tuple[int, int]) -> None:
+        self.h, self.w = crop_size
+
+    def __call__(self, img: Image.Image, mask: Image.Image) -> Tuple[Image.Image, Image.Image]:
+        """
+        Crop both img and mask.
+
+        Args:
+            img (Image.Image): Image
+            mask (Image.Image): Corresponding mask.
+
+        Returns:
+            Tuple[Image.Image, Image.Image]: Randomly cropped image and mask.
+        """
+        assert img.size == mask.size
+        w, h = img.size
+        valid_coords = h - self.h, w - self.w
+        top = random.randint(0, valid_coords[0])
+        left = random.randint(0, valid_coords[1])
+        return F.crop(img, top, left, self.h, self.w), F.crop(mask, top, left, self.h, self.w)
 
 class Compose:
     """
@@ -165,7 +265,9 @@ def get_train_transforms(cfg: Dict[str, Any]) -> Compose:
         Compose: Pipeline that takes (img, mask) and returns (img, mask).
     """
     operations = [
-        Resize(cfg["resize"]),
+        RandomScale(cfg["min_scale"], cfg["max_scale"], cfg["og_scale"]),
+        PadIfSmaller(cfg["resize"]),
+        RandomCrop(cfg["resize"]),
         RandomHorizontalFlip(cfg["flip"]),
         ColorJitter(),
         ToTensor(),

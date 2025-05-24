@@ -55,9 +55,28 @@ def resolve_path(path: str) -> str:
     return abs_path
 
 
-def get_run_dir(run_id: str, model_name: str) -> str:
+def get_run_dir(run_id: str, model_name: str, use_tmpdir: bool = False) -> str:
     """Get the run directory for saving logs and checkpoints"""
-    base_path = resolve_path("outputs/")
-    run_directory = os.path.join(base_path, model_name, run_id)
+    if use_tmpdir and "TMPDIR" in os.environ:
+        base_path = os.environ["TMPDIR"]
+    else:
+        base_path = resolve_path("")
+    run_directory = os.path.join(base_path, "outputs", model_name, run_id)
     os.makedirs(run_directory, exist_ok=True)
     return run_directory
+
+
+def get_best_checkpoint(checkpoints_dir: str) -> str:
+    if not os.path.exists(checkpoints_dir):
+        raise FileNotFoundError(f"Checkpoint directory not found: {checkpoints_dir}")
+
+    best_checkpoint = None
+    for file in os.listdir(checkpoints_dir):
+        if "best" in file and file.endswith(".pth"):
+            best_checkpoint = os.path.join(checkpoints_dir, file)
+            break
+
+    if best_checkpoint is None:
+        raise FileNotFoundError(f"No checkpoint with 'best' in the name found in {checkpoints_dir}")
+
+    return best_checkpoint

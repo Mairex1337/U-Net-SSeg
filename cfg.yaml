@@ -46,9 +46,11 @@ data:
   train_masks: data/bdd100k/labels/sem_seg/masks/train/
   val_images: data/bdd100k/images/10k/val/
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
+  test_images: data/bdd100k/images/10k/test/
+  test_masks: data/bdd100k/labels/sem_seg/masks/test/
 hyperparams:
   baseline:
-    batch_size: 8
+    batch_size: 2
     epochs: 25
     hidden_dim: 128
     input_dim: 3
@@ -60,6 +62,8 @@ runs:
   u-net: '1'
 transforms:
   flip: 0.5
+  max_scale: 1.0
+  min_scale: 0.35
   normalize:
     mean:
     - 0.3698435425758362
@@ -69,6 +73,9 @@ transforms:
     - 0.24937671422958374
     - 0.26646897196769714
     - 0.2840002775192261
+  og_scale:
+  - 720
+  - 1280
   resize:
-  - 256
-  - 448
+  - 368 #divisible by 16, have to see how much we are downsampling
+  - 640

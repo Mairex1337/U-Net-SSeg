@@ -6,12 +6,10 @@ import torch
 import yaml
 
 from src.data import get_dataloader
-from src.models import BaselineModel
 from src.training import Trainer, get_weighted_criterion
-from src.utils import (get_device, get_logger, get_run_dir, read_config,
-                       resolve_path)
+from src.utils import (get_device, get_logger, get_model, get_run_dir,
+                       read_config, write_config)
 
-MODELS = {'baseline': BaselineModel}
 
 def train(model_name: Literal['baseline', 'unet']) -> None:
     """Pipeline for training on a single device"""
@@ -19,31 +17,30 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
     run_dir = get_run_dir(cfg['runs'][model_name], model_name)
     chkpt_dir = os.path.join(run_dir, 'checkpoints')
-    logger = get_logger(run_dir)
+    # save copy of cfg.yaml in run dir
+    with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
+        yaml.dump(cfg, f, default_flow_style=False)
+
+    logger = get_logger(run_dir, "training.log")
     device = get_device()
 
-    assert model_name in MODELS.keys()
     hyperparams = cfg['hyperparams'][f'{model_name}']
-    model = MODELS[model_name](
-        hyperparams['input_dim'],
-        hyperparams['hidden_dim'],
-        hyperparams['num_classes']
-    ).to(device)
+    model = get_model(cfg, model_name).to(device)
 
     train_loader = get_dataloader(
         cfg,
-        train=True,
+        split="train",
         batch_size=hyperparams['batch_size']
     )
     val_loader = get_dataloader(
         cfg,
-        train=False,
+        split="val",
         batch_size=hyperparams['batch_size']
     )
 
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
-        weight_decay=hyperparams['weight_decay'], 
+        weight_decay=hyperparams['weight_decay'],
         lr=hyperparams['lr']
     )
     criterion = get_weighted_criterion(cfg, device=device)
@@ -67,25 +64,19 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         if val_loss < trainer.best_val_loss:
             trainer.best_checkpoint = epoch
             trainer.best_val_loss = val_loss
-    
-    trainer.determine_best_checkpoint()
 
-    # save copy of cfg.yaml in run dir
-    with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
+    trainer.determine_best_checkpoint()
 
     # increment run_id
     run_id = int(cfg['runs'][model_name])
     cfg['runs'][model_name] = str(run_id + 1)
-    cfg_path = resolve_path('cfg.yaml')
 
-    with open(cfg_path, 'w') as f:
-        yaml.dump(cfg, f, default_flow_style=False)
+    write_config(cfg)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, choices=['baseline', 'unet'])
+    parser.add_argument('--model', type=str, choices=['baseline', 'unet'], required=True)
     args = parser.parse_args()
     if args.model == None:
         raise ValueError(f"Specify the model to train via `--model [model_name]`.\n"
