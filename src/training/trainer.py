@@ -94,7 +94,7 @@ class Trainer:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
                     loop.update(len(images))
         
-        memory_usage = torch.tensor(torch.cuda.max_memory_reserved(self.device) / 1024**2, device=self.device)
+        memory_usage = torch.tensor(torch.cuda.max_memory_reserved(self.device) / 1024**3, device=self.device)
         if self.ddp:
             gathered_memory = [torch.zeros_like(memory_usage) for _ in range(self.world_size)]
             dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
@@ -103,10 +103,10 @@ class Trainer:
         avg_loss = (total_loss / len(self.train_loader)).item()
         if self.rank == 0:
             memory_list = [mem.item() for mem in (gathered_memory if self.ddp else [memory_usage])]
-            memory_log = " | ".join([f"Rank {i}: {mem:.2f}MB" for i, mem in enumerate(memory_list)])
+            memory_log = " | ".join([f"Rank {i}: {mem:.4f} GB" for i, mem in enumerate(memory_list)])
             self.logger.info(
                 f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s\n"
-                f"Memory usage: {memory_log} | Total: {sum(memory_list):.2f}MB"
+                f"Peak Memory usage: {memory_log}\nTotal Peak memory usage: {sum(memory_list):.4f} GB"
             )
         return avg_loss
 
