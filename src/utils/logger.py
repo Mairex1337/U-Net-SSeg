@@ -23,3 +23,4 @@ def get_logger(run_dir: str, file_name: str) -> logging.Logger:
     )
     logger = logging.getLogger()
     return logger
+

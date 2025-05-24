@@ -31,6 +31,8 @@ def find_batch_size(
         None
     """
     setup_ddp_process(rank, world_size)
+    torch.set_float32_matmul_precision("high")
+
     try:
         batch_size = 2
         while True:
@@ -101,7 +103,7 @@ def find_batch_size(
             torch.cuda.empty_cache()
 
             batch_size *= 2
-        
+
     except torch.cuda.OutOfMemoryError as e:
         if "CUDA out of memory" in str(e):
             torch.cuda.empty_cache()
@@ -125,4 +127,3 @@ if __name__ == '__main__':
             args=(world_size, args.model,),
             nprocs=world_size,
             join=True)
-
