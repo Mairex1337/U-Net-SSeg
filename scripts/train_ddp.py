@@ -76,12 +76,22 @@ def train_ddp(
     fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
     if rank == 0:
         logger.info(f"Using fused optimizer: {fused_available}")
+
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
         weight_decay=hyperparams['weight_decay'],
         lr=hyperparams['lr'],
         fused=fused_available
     )
+
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer=optimizer,
+        max_lr=hyperparams['lr'],
+        steps_per_epoch=len(train_loader),
+        epochs=hyperparams['epochs'],
+        pct_start=0.15,
+    )
+
     criterion = get_weighted_criterion(cfg, device=rank)
 
     trainer = Trainer(
@@ -92,6 +102,7 @@ def train_ddp(
         criterion=criterion,
         optimizer=optimizer,
         logger=logger,
+        scheduler=scheduler,
         checkpoint_dir=chkpt_dir,
         world_size=world_size,
         rank=rank

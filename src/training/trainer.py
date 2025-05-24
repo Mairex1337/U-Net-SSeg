@@ -24,6 +24,7 @@ class Trainer:
         criterion (nn.Module): Loss function.
         optimizer (Optimizer): Optimizer for model parameters.
         logger (logging.Logger): Logger for training output.
+        scheduler (torch.optim.lr_scheduler): LR scheduler.
         checkpoint_dir (str): Directory to save model checkpoints.
     """
     def __init__(
@@ -35,6 +36,7 @@ class Trainer:
             criterion,
             optimizer,
             logger,
+            scheduler,
             checkpoint_dir: str,
             world_size: int = 0,
             rank: int = 0,
@@ -46,6 +48,7 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.logger = logger
+        self.scheduler = scheduler
         self.checkpoint_dir = checkpoint_dir
         self.world_size = world_size
         self.rank = rank
@@ -86,6 +89,7 @@ class Trainer:
                     loss = self.criterion(outputs, masks)
                 loss.backward()
                 self.optimizer.step()
+                self.scheduler.step()
                 total_loss += loss.detach()
                 if self.rank == 0:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
@@ -94,6 +98,8 @@ class Trainer:
         if self.ddp:
             dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
         if self.rank == 0:
+            current_lr = self.scheduler.get_last_lr()[0]
+            self.logger.info(f"LR: {current_lr:.6e}")
             memory_usage = torch.tensor(
                 [torch.cuda.memory_allocated(i) / 1024**2 for i in range(self.world_size)]
             )
