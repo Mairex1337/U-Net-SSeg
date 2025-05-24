@@ -108,7 +108,8 @@ def train_ddp(
         if isinstance(train_loader.sampler, torch.utils.data.DistributedSampler):
             train_loader.sampler.set_epoch(epoch)
         trainer.train_epoch(epoch)
-        val_loss = trainer.validate_epoch(epoch)
+        results = trainer.validate_epoch(epoch)
+        val_loss = results['loss']
         if rank == 0:
             trainer.save_checkpoint(epoch, raw_model)
             if val_loss < trainer.best_val_loss:

@@ -71,6 +71,7 @@ class Trainer:
         """
         ...
         self.model.train()
+        torch.cuda.reset_peak_memory_stats(self.device)
         total_loss = torch.tensor(0.0, device=self.device)
         if self.rank == 0:
             loop = tqdm.tqdm(
@@ -93,20 +94,23 @@ class Trainer:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
                     loop.update(len(images))
         
+        memory_usage = torch.tensor(torch.cuda.max_memory_reserved(self.device) / 1024**2, device=self.device)
         if self.ddp:
+            gathered_memory = [torch.zeros_like(memory_usage) for _ in range(self.world_size)]
             dist.all_reduce(total_loss, op=dist.ReduceOp.AVG)
+            dist.all_gather(gathered_memory, memory_usage)
+
+        avg_loss = (total_loss / len(self.train_loader)).item()
         if self.rank == 0:
-            memory_usage = torch.tensor(
-                [torch.cuda.memory_allocated(i) / 1024**2 for i in range(self.world_size)]
-            )
-            memory_log = " | ".join([f"Rank {i}: {memory_usage[i]:.2f}MB" for i in range(self.world_size)])
-            avg_loss = (total_loss / len(self.train_loader)).item()
+            memory_list = [mem.item() for mem in (gathered_memory if self.ddp else [memory_usage])]
+            memory_log = " | ".join([f"Rank {i}: {mem:.2f}MB" for i, mem in enumerate(memory_list)])
             self.logger.info(
                 f"Epoch {epoch} - Train loss: {avg_loss:.4f} - Throughput: {self._train_samples / t.elapsed:.2f} samples/s\n"
-                f"Memory usage: {memory_log} | Total: {memory_usage.sum():.2f}MB"
+                f"Memory usage: {memory_log} | Total: {sum(memory_list):.2f}MB"
             )
         return avg_loss
-    
+
+
     def validate_epoch(self, epoch:int) -> dict:
         """
         Evaluates the model on the validation dataset.

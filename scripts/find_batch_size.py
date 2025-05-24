@@ -54,6 +54,9 @@ def find_batch_size(
 
             if not torch.cuda.is_available():
                 raise ValueError('No Cuda detected.')
+            
+            if rank == 0:
+                logger.info(f"Starting batch size search with batch_size = {cfg['hyperparams'][model_name]['batch_size']}")
 
             hyperparams = cfg['hyperparams'][f'{model_name}']
             model = get_model(cfg, model_name).to(rank)

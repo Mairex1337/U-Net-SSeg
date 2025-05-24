@@ -67,7 +67,7 @@ class SegmentationMetrics:
         """
         Reset all internal metric states for reuse on a new dataset or evaluation run.
         """
-        for metric in self.metrics:
+        for metric in self.metrics.values():
             metric.reset()
 
  
