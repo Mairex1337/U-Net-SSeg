@@ -20,7 +20,7 @@ class ConvolutionBlock(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=1, out_channels=2, base_channels=64):
+    def __init__(self, in_channels=3, num_classes=19, base_channels=64):
         super().__init__()
         self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -42,7 +42,7 @@ class UNet(nn.Module):
         self.up4 = nn.ConvTranspose2d(base_channels * 2, base_channels, kernel_size=2, stride=2)
         self.conv4 = ConvolutionBlock(base_channels * 2, base_channels)
 
-        self.outc = nn.Conv2d(base_channels, out_channels, kernel_size=1)
+        self.outc = nn.Conv2d(base_channels, num_classes, kernel_size=1)
 
     def forward(self, x):
         # Contracting path
@@ -69,17 +69,8 @@ class UNet(nn.Module):
         u4 = torch.cat([d1, u4], dim=1)
         u4 = self.conv4(u4)
 
-        return self.outc(u4)
+        out = self.outc(u4)
+        if out.shape[1] != 19:
+            raise ValueError(f"Output shape mismatch: expected 19 classes, got {out.shape[0]} classes.")
 
-    # def _crop_and_concat(self, enc_feat, up_feat):
-    #     # Crop encoder feature map to match upsampled size (valid convolutions shrink size)
-    #     _, _, H, W = up_feat.shape
-    #     enc_feat_cropped = self._center_crop(enc_feat, H, W)
-    #     return torch.cat([enc_feat_cropped, up_feat], dim=1)
-
-
-    # def _center_crop(self, layer, target_height, target_width):
-    #     _, _, h, w = layer.size()
-    #     delta_h = (h - target_height) // 2
-    #     delta_w = (w - target_width) // 2
-    #     return layer[:, :, delta_h:delta_h + target_height, delta_w:delta_w + target_width]
+        return out
