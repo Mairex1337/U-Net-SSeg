@@ -1,8 +1,8 @@
-from src.models import BaselineModel
+from src.models import BaselineModel, UNet
 import torch
 from typing import Dict, Any
 
-MODELS = {'baseline': BaselineModel}
+MODELS = {'baseline': BaselineModel, 'unet': UNet}  # Add other models as needed
 
 
 def get_model(cfg: Dict[str, Any], model_name: str) -> torch.nn.Module:
@@ -18,9 +18,16 @@ def get_model(cfg: Dict[str, Any], model_name: str) -> torch.nn.Module:
     """
     assert model_name in MODELS, f"Model '{model_name}' not supported."
     hyperparams = cfg['hyperparams'][f'{model_name}']
-    model = MODELS[model_name](
-        hyperparams['input_dim'],
-        hyperparams['hidden_dim'],
-        hyperparams['num_classes']
-    )
+    if model_name == 'unet':
+        model = MODELS[model_name](
+            in_channels=hyperparams['in_channels'],
+            num_classes=hyperparams['num_classes'],
+            base_channels=hyperparams['base_channels']
+        )
+    elif model_name == 'baseline':
+        model = MODELS[model_name](
+            hyperparams['input_dim'],
+            hyperparams['hidden_dim'],
+            hyperparams['num_classes']
+        )
     return model
