@@ -50,8 +50,8 @@ data:
   test_masks: data/bdd100k/labels/sem_seg/masks/test/
 hyperparams:
   baseline:
-    batch_size: 1
-    epochs: 1
+    batch_size: 8
+    epochs: 25
     hidden_dim: 128
     input_dim: 3
     lr: 0.001

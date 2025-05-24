@@ -75,7 +75,7 @@ def get_dataloader(
     else:
         sampler = None
 
-    num_workers = os.cpu_count() // (2 * world_size)
+    num_workers = min(16, os.cpu_count() // world_size)
     dataloader = DataLoader(
         ds,
         batch_size=batch_size,
