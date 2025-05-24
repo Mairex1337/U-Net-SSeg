@@ -87,7 +87,7 @@ class Trainer:
             for images, masks in self.train_loader:
                 images, masks = images.to(self.device), masks.to(self.device)
                 self.optimizer.zero_grad()
-                with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                     outputs = self.model(images)
                     loss = self.criterion(outputs, masks)
                 loss.backward()
@@ -141,7 +141,7 @@ class Trainer:
             with (Timer() if self.rank == 0 else nullcontext()) as t:
                 for images, masks in self.val_loader:
                     images, masks = images.to(self.device), masks.to(self.device)
-                    with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                    with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                         outputs = self.model(images)
                         loss = self.criterion(outputs, masks)
                     self.metrics.update(torch.argmax(outputs, dim=1), masks)
@@ -174,7 +174,7 @@ class Trainer:
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         filename = f"chkpt_epoch_{epoch}.pth"
         checkpoint_path = os.path.join(self.checkpoint_dir, filename)
-        state_dict = raw_model.state_dict() if raw_model else self.model.state_dict()
+        state_dict = raw_model.state_dict() if raw_model is not None else self.model.state_dict()
         torch.save({
             "epoch": epoch,
             "model_state_dict": state_dict,

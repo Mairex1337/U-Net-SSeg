@@ -58,9 +58,10 @@ def train_ddp(
 
     hyperparams = cfg['hyperparams'][f'{model_name}']
     model = get_model(cfg, model_name).to(rank)
-    model = torch.compile(model)
     raw_model = model
+    model = torch.compile(model)
     model = DDP(model, device_ids=[rank])
+    logger.info()
 
     train_loader = get_dataloader(
         cfg,
@@ -106,11 +107,8 @@ def train_ddp(
         criterion=criterion,
         optimizer=optimizer,
         logger=logger,
-<<<<<<< HEAD
         scheduler=scheduler,
-=======
         metrics=metrics,
->>>>>>> origin/dev
         checkpoint_dir=chkpt_dir,
         world_size=world_size,
         rank=rank
