@@ -104,7 +104,7 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint["model_state_dict"])
     hyperparams = cfg["hyperparams"][args.model]
-    dataloader = get_dataloader(cfg=cfg, split="test", batch_size=hyperparams["batch_size"] // 4)
+    dataloader = get_dataloader(cfg=cfg, split="test", batch_size=hyperparams["batch_size"] // 2)
 
     evaluate_model(
             model=model,

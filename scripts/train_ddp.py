@@ -33,6 +33,7 @@ def train_ddp(
     """
     setup_ddp_process(rank, world_size)
     torch.set_float32_matmul_precision("high")
+    torch.backends.cudnn.benchmark = True
 
     cfg = read_config()
     metrics = SegmentationMetrics(
@@ -57,11 +58,10 @@ def train_ddp(
         raise ValueError('No Cuda detected.')
 
     hyperparams = cfg['hyperparams'][f'{model_name}']
-    model = get_model(cfg, model_name).to(rank)
+    model = get_model(cfg, model_name).to(rank, memory_format=torch.channels_last)
     raw_model = model
-    model = torch.compile(model)
     model = DDP(model, device_ids=[rank])
-    logger.info()
+    model = torch.compile(model)
 
     train_loader = get_dataloader(
         cfg,
@@ -80,7 +80,8 @@ def train_ddp(
 
     fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
     if rank == 0:
-        logger.info(f"Using fused optimizer: {fused_available}")
+        logger.info(f"Starting training with model: {model_name}\nUsing fused optimizer: {fused_available}")
+        logger.info(f"Using run_dir: {run_dir}, using checkpoint dir: {chkpt_dir}")
 
     optimizer = torch.optim.AdamW(
         params=model.parameters(),
@@ -116,7 +117,6 @@ def train_ddp(
         rank=rank
     )
 
-    logger.info(f"Starting training with model: {model_name}, fused available: {fused_available}")
 
     for epoch in range(1, hyperparams['epochs'] + 1):
         if isinstance(train_loader.sampler, torch.utils.data.DistributedSampler):
@@ -134,6 +134,7 @@ def train_ddp(
         if stop_flag:
             logger.info(f"Early stopping training at epoch {epoch}")
             break
+        dist.barrier()
 
     if rank == 0:
         trainer.determine_best_checkpoint()

@@ -85,7 +85,7 @@ class Trainer:
             )
         with (Timer() if self.rank == 0 else nullcontext()) as t:
             for images, masks in self.train_loader:
-                images, masks = images.to(self.device), masks.to(self.device)
+                images, masks = images.to(self.device, memory_format=torch.channels_last), masks.to(self.device)
                 self.optimizer.zero_grad()
                 with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                     outputs = self.model(images)
@@ -140,7 +140,7 @@ class Trainer:
         with torch.no_grad():
             with (Timer() if self.rank == 0 else nullcontext()) as t:
                 for images, masks in self.val_loader:
-                    images, masks = images.to(self.device), masks.to(self.device)
+                    images, masks = images.to(self.device, memory_format=torch.channels_last), masks.to(self.device)
                     with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                         outputs = self.model(images)
                         loss = self.criterion(outputs, masks)

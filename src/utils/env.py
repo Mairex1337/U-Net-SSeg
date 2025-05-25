@@ -30,3 +30,4 @@ def setup_ddp_process(rank: int, world_size: int) -> None:
     os.environ['MASTER_PORT'] = '12355'
     dist.init_process_group(backend='nccl', rank=rank, world_size=world_size)
     cuda.set_device(rank)
+    dist.barrier()
