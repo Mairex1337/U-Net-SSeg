@@ -10,7 +10,7 @@ import yaml
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
-from src.training import Trainer, get_weighted_criterion
+from src.training import EarlyStopping, Trainer, get_weighted_criterion
 from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
                        read_config, setup_ddp_process, write_config)
 
@@ -97,6 +97,8 @@ def train_ddp(
         pct_start=0.15,
     )
 
+    early_stopping = EarlyStopping(patience=15)
+
     criterion = get_weighted_criterion(cfg, device=rank)
 
     trainer = Trainer(
@@ -127,6 +129,11 @@ def train_ddp(
             if val_loss < trainer.best_val_loss:
                 trainer.best_checkpoint = epoch
                 trainer.best_val_loss = val_loss
+        stop_flag = early_stopping(results["mIoU"])
+
+        if stop_flag:
+            logger.info(f"Early stopping training at epoch {epoch}")
+            break
 
     if rank == 0:
         trainer.determine_best_checkpoint()
