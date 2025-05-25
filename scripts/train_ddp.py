@@ -132,7 +132,8 @@ def train_ddp(
         stop_flag = early_stopping(results["mIoU"])
 
         if stop_flag:
-            logger.info(f"Early stopping training at epoch {epoch}")
+            if rank == 0 :
+                logger.info(f"Early stopping training at epoch {epoch}")
             break
         dist.barrier()
 

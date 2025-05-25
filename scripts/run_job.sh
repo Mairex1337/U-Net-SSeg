@@ -26,6 +26,4 @@ trap 'DEST=/scratch/$USER/u-net/job_${SLURM_JOBID}; mkdir -p $DEST; tar czvf $DE
 # copy things back
 DEST=/scratch/$USER/u-net/job_${SLURM_JOBID}
 mkdir -p $DEST
-cp $TMPDIR/slurm-${SLURM_JOBID}.out $DEST/
-cp $TMPDIR/slurm-${SLURM_JOBID}.err $DEST/
 cp -r $TMPDIR/outputs $DEST/
