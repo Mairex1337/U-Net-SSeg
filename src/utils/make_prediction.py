@@ -8,15 +8,19 @@ from scripts.inference.inference_dataloader import get_inference_dataloader
 from src.utils import read_config, get_device
 
 
-def make_prediction(model: torch.nn.Module,  img_dir: str) -> None:
+def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
     """
     Inference for model, makes an prediction based on the image given by the user.
 
     Args:
         model (torch.nn.Module): model that is being used for inference
         img_dir (str): path to directory for input images
+        out_dir (str): path to directory for output of the model
     """
     cfg = read_config()
+    os.mkdir(os.path.join(output_dir, 'predictions'))
+    os.mkdir(os.path.join(output_dir, 'images'))
+    
     device = get_device()
     dataloader = get_inference_dataloader(cfg, img_dir)
     model.eval()
@@ -38,5 +42,5 @@ def make_prediction(model: torch.nn.Module,  img_dir: str) -> None:
                 img_idx = batch_idx * dataloader.batch_size + idx
 
                 img = (img * std + mean).cpu().clamp(0, 1)
-                Image.fromarray(pred_np).save(os.path.join('inference_output', "outputs", "predictions", f"{img_idx:05}.png"))
-                TF.to_pil_image(img).save(os.path.join('inference_output', "outputs", "images", f"{img_idx:05}.png"))
+                Image.fromarray(pred_np).save(os.path.join(output_dir, "predictions", f"{img_idx:05}.png"))
+                TF.to_pil_image(img).save(os.path.join(output_dir, "images", f"{img_idx:05}.png"))
