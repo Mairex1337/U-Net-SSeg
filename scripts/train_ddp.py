@@ -11,8 +11,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
 from src.training import Trainer, get_weighted_criterion
-from src.utils import (get_logger, get_model, get_run_dir, read_config,
-                       setup_ddp_process, write_config)
+from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
+                       read_config, setup_ddp_process, write_config)
 
 
 def train_ddp(
@@ -35,6 +35,10 @@ def train_ddp(
     torch.set_float32_matmul_precision("high")
 
     cfg = read_config()
+    metrics = SegmentationMetrics(
+    num_classes=cfg['hyperparams'][model_name]['num_classes'],
+    device=rank
+    )
 
     if rank == 0:
         run_dir = get_run_dir(cfg['runs'][model_name], model_name)
@@ -92,6 +96,7 @@ def train_ddp(
         criterion=criterion,
         optimizer=optimizer,
         logger=logger,
+        metrics=metrics,
         checkpoint_dir=chkpt_dir,
         world_size=world_size,
         rank=rank
@@ -103,7 +108,8 @@ def train_ddp(
         if isinstance(train_loader.sampler, torch.utils.data.DistributedSampler):
             train_loader.sampler.set_epoch(epoch)
         trainer.train_epoch(epoch)
-        val_loss = trainer.validate_epoch(epoch)
+        results = trainer.validate_epoch(epoch)
+        val_loss = results['loss']
         if rank == 0:
             trainer.save_checkpoint(epoch, raw_model)
             if val_loss < trainer.best_val_loss:

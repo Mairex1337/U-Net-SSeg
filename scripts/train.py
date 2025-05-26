@@ -7,8 +7,8 @@ import yaml
 
 from src.data import get_dataloader
 from src.training import Trainer, get_weighted_criterion
-from src.utils import (get_device, get_logger, get_model, get_run_dir,
-                       read_config, write_config)
+from src.utils import (SegmentationMetrics, get_device, get_logger, get_model,
+                       get_run_dir, read_config, write_config)
 
 
 def train(model_name: Literal['baseline', 'unet']) -> None:
@@ -23,6 +23,11 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
     logger = get_logger(run_dir, "training.log")
     device = get_device()
+
+    metrics = SegmentationMetrics(
+    num_classes=cfg['hyperparams'][model_name]['num_classes'],
+    device=device
+    )
 
     hyperparams = cfg['hyperparams'][f'{model_name}']
     model = get_model(cfg, model_name).to(device)
@@ -53,13 +58,15 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         criterion=criterion,
         optimizer=optimizer,
         logger=logger,
+        metrics=metrics,
         checkpoint_dir=chkpt_dir
     )
 
     logger.info(f"Starting training with model: {model_name}")
     for epoch in range(1, hyperparams['epochs'] + 1):
         trainer.train_epoch(epoch)
-        val_loss = trainer.validate_epoch(epoch)
+        results = trainer.validate_epoch(epoch)
+        val_loss = results['loss']
         trainer.save_checkpoint(epoch)
         if val_loss < trainer.best_val_loss:
             trainer.best_checkpoint = epoch

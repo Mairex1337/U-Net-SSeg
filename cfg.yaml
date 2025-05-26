@@ -50,16 +50,24 @@ data:
   test_masks: data/bdd100k/labels/sem_seg/masks/test/
 hyperparams:
   baseline:
-    batch_size: 2
+    batch_size: 8
     epochs: 25
     hidden_dim: 128
     input_dim: 3
     lr: 0.001
     num_classes: 19
     weight_decay: 0.0001
+  unet:
+    batch_size: 1
+    epochs: 1
+    in_channels: 3
+    base_channels: 64
+    num_classes: 19
+    lr: 0.001
+    weight_decay: 0.0001
 runs:
   baseline: '2'
-  u-net: '1'
+  unet: '1'
 transforms:
   flip: 0.5
   max_scale: 1.0
