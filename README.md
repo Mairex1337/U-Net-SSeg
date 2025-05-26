@@ -2,6 +2,16 @@
 
 `WOW`
 
+### How to use model for inference
+- run pip install -r requirements.txt to install all libraries
+- run python -m src.deployment.api to start the api
+  
+Under /predict/, you can upload the files you want for segmentation prediction.
+This can either be a single image (JPG) or a ZIP file containing multiple images (JPG).
+For the latter, the ZIP file should contain only JPG images, no directories or other file types.
+The model will return a ZIP folder that includes a temp_output folder, which contains a folder with the original images
+and a folder with the segmentation predictions.
+
 ### Rules for running files and imports so that it consistently works!!!
 - Always use absolute imports -> `from src.data.dataset import SegmentationDataset`
 - Always run files from the root of the directory!
