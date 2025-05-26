@@ -36,10 +36,6 @@ def find_batch_size(
     try:
         batch_size = 2
         cfg = read_config()
-        metrics = SegmentationMetrics(
-            num_classes=cfg['hyperparams'][model_name]['num_classes'],
-            device=rank
-        )
         if rank == 0:
             run_dir = get_run_dir(cfg['runs'][model_name], model_name)
             chkpt_dir = os.path.join(run_dir, 'checkpoints')
@@ -50,6 +46,10 @@ def find_batch_size(
             logger = None
 
         while True:
+            metrics = SegmentationMetrics(
+                num_classes=cfg['hyperparams'][model_name]['num_classes'],
+                device=rank
+            )
             cfg['hyperparams'][model_name]['batch_size'] = batch_size
 
             if not torch.cuda.is_available():
@@ -57,9 +57,9 @@ def find_batch_size(
             
             if rank == 0:
                 logger.info(f"Starting batch size search with batch_size = {cfg['hyperparams'][model_name]['batch_size']}")
-
+                logger.info(f"Using run_dir: {run_dir}, using checkpoint dir: {chkpt_dir}")
             hyperparams = cfg['hyperparams'][f'{model_name}']
-            model = get_model(cfg, model_name).to(rank)
+            model = get_model(cfg, model_name).to(rank, memory_format=torch.channels_last)
             raw_model = model
             model = DDP(model, device_ids=[rank])
 
@@ -87,6 +87,14 @@ def find_batch_size(
                 lr=hyperparams['lr'],
                 fused=fused_available
             )
+
+            scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                optimizer=optimizer,
+                max_lr=hyperparams['lr'],
+                steps_per_epoch=len(train_loader),
+                epochs=hyperparams['epochs'],
+                pct_start=0.15,
+            )
             criterion = get_weighted_criterion(cfg, device=rank)
 
             trainer = Trainer(
@@ -97,6 +105,7 @@ def find_batch_size(
                 criterion=criterion,
                 optimizer=optimizer,
                 logger=logger,
+                scheduler=scheduler,
                 metrics=metrics,
                 checkpoint_dir=chkpt_dir,
                 world_size=world_size,
@@ -107,7 +116,7 @@ def find_batch_size(
                 train_loader.sampler.set_epoch(1)
             trainer.train_epoch(1)
 
-            del model, raw_model, trainer, train_loader, val_loader
+            del model, raw_model, trainer, train_loader, val_loader, optimizer, scheduler, criterion
             torch.cuda.empty_cache()
 
             batch_size *= 2
@@ -118,7 +127,7 @@ def find_batch_size(
             logger.info(f"Max batch size that fits: {batch_size // 2}")
             cfg["hyperparams"][model_name]['batch_size'] = batch_size // 2
             write_config(cfg)
-            return
+        return
 
     finally:
         dist.destroy_process_group()

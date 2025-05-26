@@ -1,2 +1,2 @@
-from .evaluation import get_weighted_criterion
+from .evaluation import EarlyStopping, get_weighted_criterion
 from .trainer import Trainer

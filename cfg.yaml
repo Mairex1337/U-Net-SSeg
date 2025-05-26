@@ -42,12 +42,11 @@ class_distribution:
   total_pixels: 524774717
 data:
   test_images: data/bdd100k/images/10k/test/
+  test_masks: data/bdd100k/labels/sem_seg/masks/test/
   train_images: data/bdd100k/images/10k/train/
   train_masks: data/bdd100k/labels/sem_seg/masks/train/
   val_images: data/bdd100k/images/10k/val/
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
-  test_images: data/bdd100k/images/10k/test/
-  test_masks: data/bdd100k/labels/sem_seg/masks/test/
 hyperparams:
   baseline:
     batch_size: 8
@@ -58,12 +57,12 @@ hyperparams:
     num_classes: 19
     weight_decay: 0.0001
   unet:
-    batch_size: 1
-    epochs: 1
-    in_channels: 3
     base_channels: 64
-    num_classes: 19
+    batch_size: 2
+    epochs: 150
+    in_channels: 3
     lr: 0.001
+    num_classes: 19
     weight_decay: 0.0001
 runs:
   baseline: '2'
@@ -85,5 +84,5 @@ transforms:
   - 720
   - 1280
   resize:
-  - 368 #divisible by 16, have to see how much we are downsampling
+  - 368
   - 640
