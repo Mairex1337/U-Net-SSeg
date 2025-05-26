@@ -5,9 +5,7 @@ from fastapi import FastAPI, UploadFile
 from fastapi.responses import FileResponse, RedirectResponse
 import uvicorn
 
-from src.utils.load_model import load_model
-from src.utils.make_prediction import make_prediction
-from src.utils.handle_deployment import handle_input_inference, handle_output_inference
+from src.utils.handle_deployment import handle_input_inference, handle_output_inference, load_model, make_prediction
 
 app = FastAPI()
 
