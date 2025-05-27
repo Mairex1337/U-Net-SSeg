@@ -7,7 +7,6 @@ def get_inference_dataloader(
     cfg: dict,
     img_dir = str,
     batch_size: int = 8,
-    debug: bool = False,
 ) -> DataLoader:
     """
     Creates a Dataloader used for inference
