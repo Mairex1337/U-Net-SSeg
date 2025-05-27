@@ -14,7 +14,7 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str, str]:
     Handles input given by the user and transforms it to a type which the model can use for prediction
 
     Args:
-        file (UploadFile): file that has been upload by user
+        file (UploadFile): file that has been uploaded by user
 
     Returns:
         tuple[str, str, str]: path to the input for the prediction, path to temporary directory for input, 
