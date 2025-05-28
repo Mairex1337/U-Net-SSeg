@@ -14,4 +14,4 @@ matplotlib
 tqdm
 argparse
 torchmetrics
-
+opencv-python 
