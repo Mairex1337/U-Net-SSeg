@@ -9,7 +9,7 @@ import torch
 import torchvision.transforms.functional as TF
 import cv2
 
-from src.utils import read_config, get_device, get_model, convert_grayscale_to_colored_mask, get_best_checkpoint
+from src.utils import read_config, get_device, get_model, convert_grayscale_to_colored_mask, get_best_checkpoint, get_run_dir
 from scripts.inference.inference_dataloader import get_inference_dataloader
 
 
@@ -21,10 +21,10 @@ def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
         status_code=400,
         detail="Uploaded file is not of type JSON"
     )
-    
+
     lengths = [len(v) for v in img_dict.values()]
     assert all(length == lengths[0] for length in lengths), "JSON categories should have same length"
-        
+
     try:
         for i in range(len(img_dict['images'])):
             img_dict['images'][i] = base64.b64decode(img_dict['images'][i])
@@ -33,7 +33,7 @@ def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
         status_code=400,
         detail="JSON file does not have the correct structure"
     )
-        
+
     return img_dict
 
 
@@ -43,7 +43,7 @@ def img_to_json(img_dir: str):
         'pred_mask': [],
         'pred_color': []
     }
-    
+
     dir_list = os.listdir(img_dir)
     for i, sub_dir in enumerate(dir_list):
         img_list = os.listdir(os.path.join(img_dir, sub_dir))
@@ -51,7 +51,7 @@ def img_to_json(img_dir: str):
             with open(os.path.join(img_dir, sub_dir, j), "rb") as image:
                 encoded_string = base64.b64encode(image.read()).decode('utf-8')
             list(img_dict.values())[i].append(encoded_string)
-            
+
     json_object = json.dumps(img_dict, indent=4)
     return json_object
 
@@ -66,17 +66,17 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
     Returns:
         tuple[str, str]:  path to temporary directory for input, path to temporary directory for output
     """
-    
+
     input_folder_temp = 'temp_input/'
     output_folder_temp = 'temp_output/'
     os.makedirs(input_folder_temp, exist_ok=True)
     os.makedirs(output_folder_temp, exist_ok=True)
 
     img_dict = json_to_img(file = file)
-    
+
     try:
         for i in range(len(img_dict['images'])):
-            print(img_dict['image_names'][i], img_dict['images'][i])
+            #print(img_dict['image_names'][i], img_dict['images'][i])
             with open(os.path.join(input_folder_temp, img_dict['image_names'][i]), "wb") as image_file:
                 image_file.write(img_dict['images'][i])
     except (ValueError, KeyError):
@@ -84,7 +84,7 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
         status_code=400,
         detail="JSON file does not have the correct structure"
     )
-        
+
     return input_folder_temp, output_folder_temp
 
 
@@ -93,43 +93,44 @@ def handle_output_inference(temp_input_dir: str, temp_output_dir: str) -> str:
     Handles output, by cleaning up root directory and zipping output, so it can be returned in API call
 
     Args:
-        temp_input_dir (str): path to temporary directory for input 
-        temp_output_dir (str): path to temporary directory for output 
+        temp_input_dir (str): path to temporary directory for input
+        temp_output_dir (str): path to temporary directory for output
 
     Returns:
         str: returns path to zip file which can be returns in API call
     """
     cwd = os.getcwd()
     json_output = img_to_json(temp_output_dir)
-    
+
     shutil.rmtree(os.path.join(cwd, temp_input_dir))
     shutil.rmtree(os.path.join(cwd, temp_output_dir))
-    
+
     json_file_name = "output.json"
-    
+
     with open(json_file_name, "w") as outfile:
         outfile.write(json_output)
-    
-    json_path = os.path.join(cwd, json_file_name) 
+
+    json_path = os.path.join(cwd, json_file_name)
     return json_path
 
 
 def load_model() -> torch.nn.Module:
     """
     Loads the model which will be used for inference.
-    
+
     Returns:
         torch.nn.Module: initialized model
-    """    
+    """
     cfg = read_config()
     device = get_device()
-    model = get_best_checkpoint()
+    run_dir = get_run_dir(run_id="1",model_name='baseline') #anpassen
+    checkpoint_dir = os.path.join(run_dir, 'checkpoints')
+    checkpoint_path = get_best_checkpoint(checkpoint_dir)
     model = get_model(cfg, 'baseline').to(device)
-    
-    model_path = cfg['inference']['model_path']
-    checkpoint = torch.load(model_path)
+
+    checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint["model_state_dict"])
-    
+
     return model
 
 
@@ -143,15 +144,15 @@ def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> N
         out_dir (str): path to directory for output of the model
     """
     cfg = read_config()
-    
+
     dir_images = os.path.join(output_dir, 'images')
     dir_pred = os.path.join(output_dir, 'predictions')
     dir_pred_color = os.path.join(output_dir, 'predictions_color')
-    
+
     os.makedirs(dir_images, exist_ok=True)
     os.makedirs(dir_pred, exist_ok=True)
     os.makedirs(dir_pred_color, exist_ok=True)
-    
+
     device = get_device()
     dataloader = get_inference_dataloader(cfg, img_dir)
     model.eval()
@@ -160,14 +161,14 @@ def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> N
 
     mean = torch.tensor(norms['mean']).view(3, 1, 1).to(device)
     std = torch.tensor(norms['std']).view(3, 1, 1).to(device)
-    
+
     with torch.no_grad():
         for batch_idx, (images) in enumerate(dataloader):
             images = images.to(device)
 
             outputs = model(images)
             preds = torch.argmax(outputs, dim=1)
-            
+
             for idx, (prediction, img) in enumerate(zip(preds, images)):
                 pred_np = prediction.cpu().numpy().astype("uint8")
                 img_idx = batch_idx * dataloader.batch_size + idx
