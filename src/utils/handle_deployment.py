@@ -9,7 +9,7 @@ import torch
 import torchvision.transforms.functional as TF
 import cv2
 
-from src.utils import read_config, get_device, get_model, convert_grayscale_to_colored_mask
+from src.utils import read_config, get_device, get_model, convert_grayscale_to_colored_mask, get_best_checkpoint
 from scripts.inference.inference_dataloader import get_inference_dataloader
 
 
@@ -18,9 +18,9 @@ def json_to_img(file :UploadFile = None):
     print(img_dict)
     for i in range(len(img_dict['images'])):
         img_dict['images'][i] = base64.b64decode(img_dict['images'][i])
-        # img_dir['images'][i] = img_bytes
         
     return img_dict
+
 
 def img_to_json(img_dir: str):
     img_dict = {
@@ -38,8 +38,8 @@ def img_to_json(img_dir: str):
             list(img_dict.values())[i].append(encoded_string)
             
     json_object = json.dumps(img_dict, indent=4)
-    print(json_object)
     return json_object
+
 
 def handle_input_inference(file: UploadFile) -> tuple[str, str]:
     """
@@ -52,7 +52,6 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
         tuple[str, str, str]: path to the input for the prediction, path to temporary directory for input, 
         path to temporary directory for output
     """
-    # cwd = os.getcwd()
     
     input_folder_temp = 'temp_input/'
     output_folder_temp = 'temp_output/'
@@ -65,18 +64,6 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
         print(img_dict['image_names'][i], img_dict['images'][i])
         with open(os.path.join(input_folder_temp, img_dict['image_names'][i]), "wb") as image_file:
             image_file.write(img_dict['images'][i])
-    # if file.filename.endswith('.jpg'):
-    #     im = Image.open(file.file)
-    #     im.save(os.path.join(cwd, input_folder_temp, file.filename),'JPEG')
-    #     input_path = input_folder_temp        
-    # elif file.filename.endswith('.zip'):
-    #     zip_path_input = os.path.join(input_folder_temp, file.filename)
-        
-    #     with open(zip_path_input, 'wb') as buffer:
-    #         shutil.copyfileobj(file.file, buffer)
-        
-    #     shutil.unpack_archive(zip_path_input, input_folder_temp, 'zip')
-    #     input_path =  zip_path_input.replace('.zip', '')
         
     return input_folder_temp, output_folder_temp
 
@@ -93,10 +80,8 @@ def handle_output_inference(temp_input_dir: str, temp_output_dir: str) -> str:
         str: returns path to zip file which can be returns in API call
     """
     cwd = os.getcwd()
-    # zip_name_output = 'output'
     json_output = img_to_json(temp_output_dir)
     
-    # shutil.make_archive(base_name=zip_name_output, format='zip', root_dir=cwd, base_dir=temp_output_dir)
     shutil.rmtree(os.path.join(cwd, temp_input_dir))
     shutil.rmtree(os.path.join(cwd, temp_output_dir))
     
@@ -118,6 +103,7 @@ def load_model() -> torch.nn.Module:
     """    
     cfg = read_config()
     device = get_device()
+    model = get_best_checkpoint()
     model = get_model(cfg, 'baseline').to(device)
     
     model_path = cfg['inference']['model_path']
@@ -171,5 +157,3 @@ def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> N
                 TF.to_pil_image(img).save(os.path.join(dir_images, f"{img_idx:05}.png"))
                 color_img = convert_grayscale_to_colored_mask(os.path.join(dir_pred, f"{img_idx:05}.png"))
                 cv2.imwrite(os.path.join(dir_pred_color, f"{img_idx:05}.png"), color_img)
-    
-        
