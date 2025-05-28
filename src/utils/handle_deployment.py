@@ -16,7 +16,7 @@ from scripts.inference.inference_dataloader import get_inference_dataloader
 def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
     try:
         img_dict = json.load(file.file)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         raise HTTPException(
         status_code=400,
         detail="Uploaded file is not of type JSON"
