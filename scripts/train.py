@@ -48,6 +48,15 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         weight_decay=hyperparams['weight_decay'],
         lr=hyperparams['lr']
     )
+
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer=optimizer,
+        max_lr=hyperparams['lr'],
+        steps_per_epoch=len(train_loader),
+        epochs=hyperparams['epochs'],
+        pct_start=0.15,
+    )
+
     criterion = get_weighted_criterion(cfg, device=device)
 
     trainer = Trainer(
@@ -58,6 +67,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         criterion=criterion,
         optimizer=optimizer,
         logger=logger,
+        scheduler=scheduler,
         metrics=metrics,
         checkpoint_dir=chkpt_dir
     )

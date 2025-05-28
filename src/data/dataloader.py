@@ -43,7 +43,7 @@ def get_dataloader(
     mask_dir = cfg["data"][mask_key]
 
     if world_size > 1:
-        tmp_dir = os.environ("$TMPDIR")
+        tmp_dir = os.environ["TMPDIR"]
         img_dir = os.path.join(tmp_dir, img_dir)
         mask_dir = os.path.join(tmp_dir, mask_dir)
     else:
@@ -83,6 +83,7 @@ def get_dataloader(
         sampler = sampler,
         pin_memory=(sampler is not None),
         num_workers=num_workers,
+        persistent_workers=True if sampler is not None else False
     )
 
     return dataloader

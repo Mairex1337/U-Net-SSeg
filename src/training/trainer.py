@@ -24,6 +24,7 @@ class Trainer:
         criterion (nn.Module): Loss function.
         optimizer (Optimizer): Optimizer for model parameters.
         logger (logging.Logger): Logger for training output.
+        scheduler (torch.optim.lr_scheduler): LR scheduler.
         checkpoint_dir (str): Directory to save model checkpoints.
     """
     def __init__(
@@ -35,6 +36,7 @@ class Trainer:
             criterion,
             optimizer,
             logger,
+            scheduler,
             metrics,
             checkpoint_dir: str,
             world_size: int = 0,
@@ -47,6 +49,7 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.logger = logger
+        self.scheduler = scheduler
         self.metrics = metrics
         self.checkpoint_dir = checkpoint_dir
         self.world_size = world_size
@@ -82,13 +85,14 @@ class Trainer:
             )
         with (Timer() if self.rank == 0 else nullcontext()) as t:
             for images, masks in self.train_loader:
-                images, masks = images.to(self.device), masks.to(self.device)
+                images, masks = images.to(self.device, memory_format=torch.channels_last), masks.to(self.device)
                 self.optimizer.zero_grad()
-                with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                     outputs = self.model(images)
                     loss = self.criterion(outputs, masks)
                 loss.backward()
                 self.optimizer.step()
+                self.scheduler.step()
                 total_loss += loss.detach()
                 if self.rank == 0:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
@@ -102,6 +106,8 @@ class Trainer:
 
         avg_loss = (total_loss / len(self.train_loader)).item()
         if self.rank == 0:
+            current_lr = self.scheduler.get_last_lr()[0]
+            self.logger.info(f"LR: {current_lr:.6e}")
             memory_list = [mem.item() for mem in (gathered_memory if self.ddp else [memory_usage])]
             memory_log = " | ".join([f"Rank {i}: {mem:.4f} GB" for i, mem in enumerate(memory_list)])
             self.logger.info(
@@ -134,8 +140,8 @@ class Trainer:
         with torch.no_grad():
             with (Timer() if self.rank == 0 else nullcontext()) as t:
                 for images, masks in self.val_loader:
-                    images, masks = images.to(self.device), masks.to(self.device)
-                    with (torch.autocast(self.device, dtype=torch.bfloat16) if self.ddp else nullcontext()):
+                    images, masks = images.to(self.device, memory_format=torch.channels_last), masks.to(self.device)
+                    with (torch.autocast(device_type='cuda', dtype=torch.bfloat16) if self.ddp else nullcontext()):
                         outputs = self.model(images)
                         loss = self.criterion(outputs, masks)
                     self.metrics.update(torch.argmax(outputs, dim=1), masks)
@@ -168,7 +174,7 @@ class Trainer:
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         filename = f"chkpt_epoch_{epoch}.pth"
         checkpoint_path = os.path.join(self.checkpoint_dir, filename)
-        state_dict = raw_model.state_dict() if raw_model else self.model.state_dict()
+        state_dict = raw_model.state_dict() if raw_model is not None else self.model.state_dict()
         torch.save({
             "epoch": epoch,
             "model_state_dict": state_dict,
