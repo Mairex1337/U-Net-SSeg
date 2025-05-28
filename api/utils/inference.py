@@ -1,0 +1,75 @@
+import os
+
+import cv2
+import torch
+import torchvision.transforms.functional as TF
+from api.data.dataloader import get_inference_dataloader
+from PIL import Image
+from src.utils import (convert_grayscale_to_colored_mask, get_device,
+                       read_config, get_model, get_best_checkpoint,
+                       get_run_dir)
+
+def load_model() -> torch.nn.Module:
+    """
+    Loads the model which will be used for inference.
+
+    Returns:
+        torch.nn.Module: initialized model
+    """
+    cfg = read_config()
+    device = get_device()
+    run_dir = get_run_dir(run_id="1",model_name='baseline') #anpassen
+    checkpoint_dir = os.path.join(run_dir, 'checkpoints')
+    checkpoint_path = get_best_checkpoint(checkpoint_dir)
+    model = get_model(cfg, 'baseline').to(device)
+
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint["model_state_dict"])
+
+    return model
+
+
+def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
+    """
+    Inference for model, makes an prediction based on the image given by the user.
+
+    Args:
+        model (torch.nn.Module): model that is being used for inference
+        img_dir (str): path to directory for input images
+        out_dir (str): path to directory for output of the model
+    """
+    cfg = read_config()
+
+    dir_images = os.path.join(output_dir, 'images')
+    dir_pred = os.path.join(output_dir, 'predictions')
+    dir_pred_color = os.path.join(output_dir, 'predictions_color')
+
+    os.makedirs(dir_images, exist_ok=True)
+    os.makedirs(dir_pred, exist_ok=True)
+    os.makedirs(dir_pred_color, exist_ok=True)
+
+    device = get_device()
+    dataloader = get_inference_dataloader(cfg, img_dir)
+    model.eval()
+
+    norms=cfg['transforms']['normalize']
+
+    mean = torch.tensor(norms['mean']).view(3, 1, 1).to(device)
+    std = torch.tensor(norms['std']).view(3, 1, 1).to(device)
+
+    with torch.no_grad():
+        for batch_idx, (images) in enumerate(dataloader):
+            images = images.to(device)
+
+            outputs = model(images)
+            preds = torch.argmax(outputs, dim=1)
+
+            for idx, (prediction, img) in enumerate(zip(preds, images)):
+                pred_np = prediction.cpu().numpy().astype("uint8")
+                img_idx = batch_idx * dataloader.batch_size + idx
+
+                img = (img * std + mean).cpu().clamp(0, 1)
+                Image.fromarray(pred_np).save(os.path.join(dir_pred, f"{img_idx:05}.png"))
+                TF.to_pil_image(img).save(os.path.join(dir_images, f"{img_idx:05}.png"))
+                color_img = convert_grayscale_to_colored_mask(os.path.join(dir_pred, f"{img_idx:05}.png"))
+                cv2.imwrite(os.path.join(dir_pred_color, f"{img_idx:05}.png"), color_img)
