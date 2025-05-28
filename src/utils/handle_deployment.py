@@ -3,7 +3,7 @@ import shutil
 import base64
 import json
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from PIL import Image
 import torch
 import torchvision.transforms.functional as TF
@@ -13,11 +13,26 @@ from src.utils import read_config, get_device, get_model, convert_grayscale_to_c
 from scripts.inference.inference_dataloader import get_inference_dataloader
 
 
-def json_to_img(file :UploadFile = None):
-    img_dict = json.load(file.file)
-    print(img_dict)
-    for i in range(len(img_dict['images'])):
-        img_dict['images'][i] = base64.b64decode(img_dict['images'][i])
+def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
+    try:
+        img_dict = json.load(file.file)
+    except json.JSONDecodeError:
+        raise HTTPException(
+        status_code=400,
+        detail="Uploaded file is not of type JSON"
+    )
+    
+    lengths = [len(v) for v in img_dict.values()]
+    assert all(length == lengths[0] for length in lengths), "JSON categories should have same length"
+        
+    try:
+        for i in range(len(img_dict['images'])):
+            img_dict['images'][i] = base64.b64decode(img_dict['images'][i])
+    except (ValueError, KeyError):
+        raise HTTPException(
+        status_code=400,
+        detail="JSON file does not have the correct structure"
+    )
         
     return img_dict
 
@@ -49,8 +64,7 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
         file (UploadFile): file that has been uploaded by user
 
     Returns:
-        tuple[str, str, str]: path to the input for the prediction, path to temporary directory for input, 
-        path to temporary directory for output
+        tuple[str, str]:  path to temporary directory for input, path to temporary directory for output
     """
     
     input_folder_temp = 'temp_input/'
@@ -60,10 +74,16 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
 
     img_dict = json_to_img(file = file)
     
-    for i in range(len(img_dict['images'])):
-        print(img_dict['image_names'][i], img_dict['images'][i])
-        with open(os.path.join(input_folder_temp, img_dict['image_names'][i]), "wb") as image_file:
-            image_file.write(img_dict['images'][i])
+    try:
+        for i in range(len(img_dict['images'])):
+            print(img_dict['image_names'][i], img_dict['images'][i])
+            with open(os.path.join(input_folder_temp, img_dict['image_names'][i]), "wb") as image_file:
+                image_file.write(img_dict['images'][i])
+    except (ValueError, KeyError):
+        raise HTTPException(
+        status_code=400,
+        detail="JSON file does not have the correct structure"
+    )
         
     return input_folder_temp, output_folder_temp
 
