@@ -1,15 +1,17 @@
 import os
 import shutil
+import base64
+import json
 
 from fastapi import UploadFile
 from PIL import Image
 import torch
 import torchvision.transforms.functional as TF
+import cv2
 
-from src.utils import read_config, get_device, get_model
+from src.utils import read_config, get_device, get_model, convert_grayscale_to_colored_mask
 from scripts.inference.inference_dataloader import get_inference_dataloader
-import base64
-import json
+
 
 def json_to_img(file :UploadFile = None):
     img_dict = json.load(file.file)
@@ -167,3 +169,7 @@ def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> N
                 img = (img * std + mean).cpu().clamp(0, 1)
                 Image.fromarray(pred_np).save(os.path.join(dir_pred, f"{img_idx:05}.png"))
                 TF.to_pil_image(img).save(os.path.join(dir_images, f"{img_idx:05}.png"))
+                color_img = convert_grayscale_to_colored_mask(os.path.join(dir_pred, f"{img_idx:05}.png"))
+                cv2.imwrite(os.path.join(dir_pred_color, f"{img_idx:05}.png"), color_img)
+    
+        

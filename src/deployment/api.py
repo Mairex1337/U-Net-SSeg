@@ -35,7 +35,6 @@ async def predict_segmentation(file: UploadFile) -> FileResponse:
     temp_input_dir, temp_output_dir = handle_input_inference(file)
     model = load_model()
     make_prediction(model, temp_input_dir, temp_output_dir)
-    return
     json_path = handle_output_inference(temp_input_dir, temp_output_dir)
     return FileResponse(path=json_path, media_type='application/json', filename='output.json')
 
