@@ -26,7 +26,7 @@ async def convert_images_to_json(file: UploadFile) -> FileResponse:
     if not file.filename.endswith(('.jpg', '.zip')):
         raise HTTPException(
             status_code=400, 
-            detail="Uploaded file is not of type .jpg or .zip"
+            detail="Uploaded file is not of type jpg or zip"
         )
         
     if file.filename.endswith('.jpg'):
@@ -48,16 +48,22 @@ async def convert_images_to_json(file: UploadFile) -> FileResponse:
     }
     
     images = os.listdir(img_folder)
-    for img in images:
-        with open(os.path.join(img_folder, img), "rb") as image:
-            encoded_string = base64.b64encode(image.read()).decode()
-        dict_imgs['image_names'].append(img)
-        dict_imgs['images'].append(encoded_string)
-        if not file.filename.endswith(('.jpg')):
-            raise HTTPException(
-                status_code=400, 
-                detail="files in .zip file are not of type jpg"
-            )
+    try:
+        for img in images:
+            with open(os.path.join(img_folder, img), "rb") as image:
+                encoded_string = base64.b64encode(image.read()).decode()
+            dict_imgs['image_names'].append(img)
+            dict_imgs['images'].append(encoded_string)
+            if not img.endswith(('.jpg')):
+                raise HTTPException(
+                    status_code=400, 
+                    detail="files in zip file are not of type jpg"
+                )
+    except PermissionError:
+        raise HTTPException(
+                    status_code=400, 
+                    detail="There are directories in the uploaded zip file, please upload a zip file which only contains files of type jpg"
+                )
     
     json_object = json.dumps(dict_imgs)
     filename_json = "img_to_json.json"

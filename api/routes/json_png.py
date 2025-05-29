@@ -53,6 +53,10 @@ async def convert_json_to_images(file: UploadFile) -> FileResponse:
 
                     zipf.write(file_path, arcname=filename)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing images: {str(e)}")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"""Error processing images: {str(e)}, 
+            please upload a JSON file with encoded images for all values"""
+            )
 
     return FileResponse(zip_path, filename="converted_images.zip", media_type="application/zip")
