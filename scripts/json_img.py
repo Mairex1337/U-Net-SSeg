@@ -15,8 +15,8 @@ def convert_json_to_images(path_to_json: str, output_path: str) -> None:
     - "pred_color": list of base64-encoded predicted color mask images (colormap).
 
     Args:
-        path_to_json (str): path where the json is stored.
-        output_path (str): path where the images will be saved.
+        path_to_json (str): Path where the JSON is stored.
+        output_path (str): Path where the images will be saved.
     """
     with open(path_to_json, 'r') as f:
         data = json.load(f)
@@ -35,7 +35,7 @@ def convert_json_to_images(path_to_json: str, output_path: str) -> None:
                 img_file.write(content)
                 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Evaluate a trained segmentation model.")
+    parser = argparse.ArgumentParser(description="Convert JSON to images")
     parser.add_argument('--path-to-json', required=True, type=str)
     parser.add_argument('--output-path', required=True, type=str)
     args = parser.parse_args()
