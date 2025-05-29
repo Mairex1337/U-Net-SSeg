@@ -11,8 +11,6 @@ router = APIRouter()
 @router.post("/")
 async def predict_segmentation(
     file: UploadFile,
-    run_id: str = "1",
-    model_name: Literal["baseline", "unet"] = "baseline"
 ) -> FileResponse:
     """
     Predicts a segmentation map from an uploaded image file using a selected model.
@@ -27,7 +25,10 @@ async def predict_segmentation(
         the predicted segmentation masks encoded as base64.
     """
     temp_input_dir, temp_output_dir = handle_input_inference(file)
-
+    
+    run_id = "3"
+    model_name = "baseline"
+    print(run_id)
     model = load_model(run_id, model_name)
 
     make_prediction(model, temp_input_dir, temp_output_dir)
