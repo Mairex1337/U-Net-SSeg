@@ -22,7 +22,7 @@ async def predict_segmentation(
 
     
 
-    **Request Format:**
+    **Input Format:**
     Upload a `.json` file with the following structure:
     ```json
     {
@@ -35,6 +35,15 @@ async def predict_segmentation(
             ...
         ]
     }
+    ```
+
+    **Example Request:**
+    ```bash
+        curl -X POST \\
+        http://127.0.0.1:8000/predict/ \\
+        -H "accept: application/json" \\
+        -H "Content-Type: multipart/form-data" \\
+        -F "file=@api_images.json;type=application/json"
     ```
 
     **Response Format:**
