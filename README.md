@@ -50,15 +50,25 @@ As per the assignment instructions, the API expects a `.json` file containing ba
 
 ### Running the API
 
-1. Launch the API server:
+Launch the API server:
    ```bash
    python -m api.main
    ```
-2. Open the `/docs` page in your browser (URL printed in terminal).
-3. Go to the `/predict/` endpoint and click **"Try it out"**.
-4. Upload `api_images.json` or your own converted file.
-5. Click **"Execute"** to run inference.
-6. Download the `output.json` file from the response.
+Request via CURL:
+    ```bash
+        curl -X POST \
+        http://127.0.0.1:8000/predict/ \
+        -H "accept: application/json" \
+        -H "Content-Type: multipart/form-data" \
+        -F "file=@api_images.json;type=application/json"
+    ```
+
+Request via GUI:
+- Open the `/docs` page in your browser (URL printed in terminal).
+- Go to the `/predict/` endpoint and click **"Try it out"**.
+- Upload `api_images.json` or your own converted file.
+- Click **"Execute"** to run inference.
+- Download the `output.json` file from the response.
 
 
 ### Converting the Output JSON Back to Images
