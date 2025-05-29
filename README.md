@@ -89,5 +89,4 @@ The class indices in the prediction masks correspond to:
 16: train
 17: motorcycle
 18: bicycle
-255: ignore index
 ```
