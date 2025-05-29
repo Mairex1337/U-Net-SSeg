@@ -71,6 +71,9 @@ python -m scripts.json_img \
 
 ### Class Mapping
 
+Colormap class mappings:
+![alt text](images/image.png)
+
 The class indices in the prediction masks correspond to:
 
 ```yaml
