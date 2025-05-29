@@ -11,7 +11,7 @@ __pycache__/
 
 test.py
 
-outputs/
+outputs
 .pytest_cache
 
 read_validation_results.py

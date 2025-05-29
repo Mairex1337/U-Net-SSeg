@@ -56,7 +56,16 @@ def resolve_path(path: str) -> str:
 
 
 def get_run_dir(run_id: str, model_name: str) -> str:
-    """Get the run directory for saving logs and checkpoints"""
+    """
+    Returns the full path to a run directory for a given model and run ID.
+
+    Args:
+        run_id (str): Unique ID of the run.
+        model_name (str): Name of the model.
+
+    Returns:
+        str: Full path to the run directory.
+    """
     if "SLURM_JOBID" in os.environ:
         base_path = os.environ["TMPDIR"]
     else:
@@ -67,6 +76,19 @@ def get_run_dir(run_id: str, model_name: str) -> str:
 
 
 def get_best_checkpoint(checkpoints_dir: str) -> str:
+    """
+    Finds and returns the path to the best checkpoint in a given directory.
+
+    Args:
+        checkpoints_dir (str): Path to the directory containing model checkpoints.
+
+    Returns:
+        str: Full path to the checkpoint file that contains 'best' in its name.
+
+    Raises:
+        FileNotFoundError: If the checkpoint directory doesn't exist
+                           or no 'best' checkpoint is found.
+    """
     if not os.path.exists(checkpoints_dir):
         raise FileNotFoundError(f"Checkpoint directory not found: {checkpoints_dir}")
 

@@ -14,4 +14,10 @@ matplotlib
 tqdm
 argparse
 torchmetrics
+pillow
+fastapi
+uvicorn
+python-multipart
 opencv-python 
+gdown
+
