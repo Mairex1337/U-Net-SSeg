@@ -1,10 +1,9 @@
-import os
-
 import uvicorn
 from api.routes import predict
 from api.utils import cleanup_temp_dirs
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from src.utils import resolve_path
 
 app = FastAPI(
     title="ML Inference API",
@@ -26,7 +25,5 @@ async def root() -> RedirectResponse:
     return RedirectResponse(url="/docs")
 
 if __name__ == "__main__":
-    cwd = os.getcwd() # get run dir???? TODO:
-    cleanup_temp_dirs(cwd)
-
+    cleanup_temp_dirs(resolve_path(""))
     uvicorn.run(app, host="127.0.0.1", port=8000)
