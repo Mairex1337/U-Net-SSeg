@@ -1,7 +1,7 @@
-from api.data.dataset import InferenceDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from api.data.dataset import InferenceDataset
 
 def get_inference_dataloader(
     cfg: dict,

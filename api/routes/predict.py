@@ -1,7 +1,8 @@
-from api.utils import (handle_input_inference, handle_output_inference,
-                       make_prediction)
 from fastapi import APIRouter, UploadFile
 from fastapi.responses import FileResponse
+
+from api.utils import (handle_input_inference, handle_output_inference,
+                       make_prediction)
 from src.utils import load_model
 
 router = APIRouter()

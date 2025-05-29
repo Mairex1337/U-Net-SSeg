@@ -1,12 +1,11 @@
-import sys
-sys.path.append(r'C:\Users\daand\RUG\applied ml\project\U-Net-SSeg')
-
 import uvicorn
-from api.routes import predict, json_png, img_json
-from api.utils import cleanup_temp_dirs
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+
 from src.utils import resolve_path
+from api.routes import predict, json_png, img_json
+from api.utils import cleanup_temp_dirs
+
 
 app = FastAPI(
     title="ML Inference API",

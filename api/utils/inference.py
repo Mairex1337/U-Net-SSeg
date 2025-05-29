@@ -3,10 +3,11 @@ import os
 import cv2
 import torch
 import torchvision.transforms.functional as TF
-from api.data.dataloader import get_inference_dataloader
 from PIL import Image
+
 from src.utils import (convert_grayscale_to_colored_mask, get_device,
                        read_config)
+from api.data.dataloader import get_inference_dataloader
 
 
 def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
