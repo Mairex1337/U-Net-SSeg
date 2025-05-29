@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from src.utils import resolve_path
-from api.routes import predict, json_png, img_json
+from api.routes import predict, json_img, img_json
 from api.utils import cleanup_temp_dirs
 
 
@@ -15,7 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
-app.include_router(json_png.router, tags=["JSON to Images"])
+app.include_router(json_img.router, tags=["JSON to Images"])
 app.include_router(img_json.router, tags=["Images to JSON"])
 
 @app.get('/', include_in_schema=False)
