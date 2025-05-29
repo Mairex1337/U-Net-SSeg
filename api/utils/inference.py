@@ -5,9 +5,9 @@ import torch
 import torchvision.transforms.functional as TF
 from PIL import Image
 
+from api.data.dataloader import get_inference_dataloader
 from src.utils import (convert_grayscale_to_colored_mask, get_device,
                        read_config)
-from api.data.dataloader import get_inference_dataloader
 
 
 def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
@@ -20,10 +20,9 @@ def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> N
         out_dir (str): path to directory for output of the model
     """
     cfg = read_config()
-
     dir_images = os.path.join(output_dir, 'images')
-    dir_pred = os.path.join(output_dir, 'predictions')
-    dir_pred_color = os.path.join(output_dir, 'predictions_color')
+    dir_pred = os.path.join(output_dir, 'pred_mask')
+    dir_pred_color = os.path.join(output_dir, 'pred_color')
 
     os.makedirs(dir_images, exist_ok=True)
     os.makedirs(dir_pred, exist_ok=True)

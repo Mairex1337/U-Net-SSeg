@@ -7,23 +7,30 @@ import os
 def convert_json_to_images(path_to_json: str, output_path: str) -> None:
     """
     Converts a JSON file containing base64-encoded images, masks, and colormaps into image files.
-    Saves the images in the given output path.
+    Saves the images in separate subdirectories within the given output path.
 
-    Expects JSON keys:
-    - "images": list of base64-encoded input images.
-    - "pred_mask": list of base64-encoded predicted mask images (grayscale).
-    - "pred_color": list of base64-encoded predicted color mask images (colormap).
+    Subfolders:
+    - input/: original input images
+    - mask/: predicted grayscale masks
+    - color/: colormapped predicted masks
 
     Args:
         path_to_json (str): Path where the JSON is stored.
-        output_path (str): Path where the images will be saved.
+        output_path (str): Path where the subfolders and images will be saved.
     """
     with open(path_to_json, 'r') as f:
         data = json.load(f)
 
     required_keys = ["images", "pred_mask", "pred_color"]
     assert all(key in data for key in required_keys), f"JSON must contain: {', '.join(required_keys)}"
-    os.makedirs(output_path, exist_ok=True)
+
+    # Create subdirectories
+    input_dir = os.path.join(output_path, "input")
+    mask_dir = os.path.join(output_path, "mask")
+    color_dir = os.path.join(output_path, "color")
+    os.makedirs(input_dir, exist_ok=True)
+    os.makedirs(mask_dir, exist_ok=True)
+    os.makedirs(color_dir, exist_ok=True)
 
     names = data.get("image_names", [f"image_{i}.jpg" for i in range(len(data["images"]))])
 
@@ -32,24 +39,21 @@ def convert_json_to_images(path_to_json: str, output_path: str) -> None:
 
         # Decode and save input image
         input_bytes = base64.b64decode(data["images"][i])
-        input_path = os.path.join(output_path, f"input_{base_name}.jpg")
-        with open(input_path, "wb") as f:
+        with open(os.path.join(input_dir, f"{base_name}.jpg"), "wb") as f:
             f.write(input_bytes)
 
         # Decode and save predicted mask
         mask_bytes = base64.b64decode(data["pred_mask"][i])
-        mask_path = os.path.join(output_path, f"mask_{base_name}.png")
-        with open(mask_path, "wb") as f:
+        with open(os.path.join(mask_dir, f"{base_name}.png"), "wb") as f:
             f.write(mask_bytes)
 
         # Decode and save colormapped prediction
         color_bytes = base64.b64decode(data["pred_color"][i])
-        color_path = os.path.join(output_path, f"color_{base_name}.png")
-        with open(color_path, "wb") as f:
+        with open(os.path.join(color_dir, f"{base_name}.png"), "wb") as f:
             f.write(color_bytes)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Convert JSON to images")
+    parser = argparse.ArgumentParser(description="Convert JSON to images in subdirectories")
     parser.add_argument('--path-to-json', required=True, type=str)
     parser.add_argument('--output-path', required=True, type=str)
     args = parser.parse_args()

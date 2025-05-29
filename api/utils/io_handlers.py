@@ -76,7 +76,7 @@ def img_to_json(img_dir: str):
                 encoded = base64.b64encode(f.read()).decode()
                 img_dict[key].append(encoded)
 
-    return json.dumps(img_dict, indent=2)
+    return json.dumps(img_dict, indent=4)
 
 
 def handle_input_inference(file: UploadFile) -> tuple[str, str]:
