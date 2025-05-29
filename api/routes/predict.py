@@ -23,8 +23,8 @@ async def predict_segmentation(
     """
     temp_input_dir, temp_output_dir = handle_input_inference(file)
     
-    run_id = "3"
-    model_name = "baseline"
+    run_id = "1"
+    model_name = "unet"
     model = load_model(run_id, model_name)
 
     make_prediction(model, temp_input_dir, temp_output_dir)
