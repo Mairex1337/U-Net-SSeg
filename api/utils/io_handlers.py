@@ -29,9 +29,13 @@ def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
         status_code=400,
         detail="Uploaded file is not of type JSON"
     )
-
+        
     lengths = [len(v) for v in img_dict.values()]
-    assert all(length == lengths[0] for length in lengths), "JSON categories should have same length"
+    if not all(length == lengths[0] for length in lengths):
+        raise HTTPException(
+            status_code=400, 
+            detail="Values of all JSON categories must be of the same length"
+            )
 
     try:
         for i in range(len(img_dict['images'])):
