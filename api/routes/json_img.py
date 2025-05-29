@@ -37,7 +37,7 @@ async def convert_json_to_images(file: UploadFile) -> FileResponse:
 
     temp_dir = tempfile.mkdtemp()
     zip_path = os.path.join(temp_dir, "images.zip")
-    names = data.get("image_names", [f"image_{i}.png" for i in range(len(data["images"]))])
+    names = data.get("image_names", [f"image_{i}.jpg" for i in range(len(data["images"]))])
 
 
     try:
