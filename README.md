@@ -1,37 +1,93 @@
-# Very Epic Machine Learning Project
+# U-Net Semantic Segmentation model
 
-`WOW`
+We trained a U-Net model on the semantic segmentation task via the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. The dataset includes images from road scenes with 19 diverse classes and various locations, times and weathers. The current iteration achieved an accuracy $0.8797$ on the test set vs. a random guessing accuracy of $1/19 \approx 0.0526$.
 
-### How to use model for inference
-- run pip install -r requirements.txt to install all libraries
-- run python -m src.deployment.api to start the api
-  
-Under /predict/, you can upload the files you want for segmentation prediction.
-This can either be a single image (JPG) or a ZIP file containing multiple images (JPG).
-For the latter, the ZIP file should contain only JPG images, no directories or other file types.
-The model will return a ZIP folder that includes a temp_output folder, which contains a folder with the original images
-and a folder with the segmentation predictions.
+## Usage Instructions
+#### Pre-requisites
+### Pre-requisites
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Mairex1337/U-Net-SSeg.git
+   ```
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Navigate to the project root:
+   ```bash
+   cd U-Net-SSeg
+   ```
+4. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Rules for running files and imports so that it consistently works!!!
-- Always use absolute imports -> `from src.data.dataset import SegmentationDataset`
-- Always run files from the root of the directory!
-- Run them like this and it will always work -> `python -m src.utils.calculate_means` (no `.py`)
-- If you want your VSCode play button to work, set this in `.vscode/launch.json` in the root of the project:
-    `"cwd": "${workspaceFolder}"`
+### Expected Input Format
 
-### How to set up your data/ directory
-- Make sure you downloaded the zips for semantic segmentation, 10kimages train, 10kimages val, 10kimages test.
-- Order them as specified in the cfg.yaml.
+As per the assignment instructions, the API expects a `.json` file containing base64-encoded image data:
 
-### Other
-- Please also install and configure Isort plugin to sort imports nicely :)
-    - Put this into your settings.json after installing:
 ```json
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit",
-    }
-  }
+{
+  "image_names": ["name.jpg", ...],
+  "images": ["/9j/4AAQSkZJRgABAQAAAQABAAD/...", ...]
+}
 ```
-- Hyperparameters should be stored in cfg.yaml in the future, there is a read_config function in utils/ dir.
+
+- You can use the provided `api_images.json`, or convert your own images with:
+
+  ```bash
+  python -m scripts.img_json \
+    --path-to-images /path/to/image_folder \
+    --output-path /path/to/save/json \
+    --file-name optional_filename.json
+  ```
+
+### Running the API
+
+1. Launch the API server:
+   ```bash
+   python -m api.main
+   ```
+2. Open the `/docs` page in your browser (URL printed in terminal).
+3. Go to the `/predict/` endpoint and click **"Try it out"**.
+4. Upload `api_images.json` or your own converted file.
+5. Click **"Execute"** to run inference.
+6. Download the `output.json` file from the response.
+
+
+### Converting the Output JSON Back to Images
+
+To view the predictions, convert the `output.json` back to images using:
+
+```bash
+python -m scripts.json_img \
+  --path-to-json /path/to/output.json \
+  --output-path /path/to/save/images
+```
+
+### Class Mapping
+
+The class indices in the prediction masks correspond to:
+
+```yaml
+0: road
+1: sidewalk
+2: building
+3: wall
+4: fence
+5: pole
+6: traffic light
+7: traffic sign
+8: vegetation
+9: terrain
+10: sky
+11: person
+12: rider
+13: car
+14: truck
+15: bus
+16: train
+17: motorcycle
+18: bicycle
+```

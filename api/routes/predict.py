@@ -7,19 +7,53 @@ from src.utils import load_model
 
 router = APIRouter()
 
-@router.post("/")
+@router.post(
+    "/",
+    summary="Run segmentation on uploaded image(s) in base64 JSON",
+    tags=["Prediction"],
+    response_class=FileResponse
+)
 async def predict_segmentation(
     file: UploadFile,
 ) -> FileResponse:
     """
-    Predicts a segmentation map from an uploaded image file using a selected model.
+    Accepts a JSON file containing base64-encoded images and returns a JSON file
+    with predicted segmentation masks and colormaps (also base64-encoded).
 
-    Args:
-        file (UploadFile): The uploaded JSON file containing base64-encoded images and metadata.
+    
 
-    Returns:
-        FileResponse: A JSON file (`output.json`) containing the original images and
-        the predicted segmentation masks encoded as base64.
+    **Request Format:**
+    Upload a `.json` file with the following structure:
+    ```json
+    {
+        "image_names": [
+            "name.jpg",
+            ...
+        ],
+        "images": [
+            "/9j/4AAQSkZJRgABAQAAAQABAAD/...",
+            ...
+        ]
+    }
+    ```
+
+    **Response Format:**
+    A downloadable `output.json` file with keys:
+    ```json
+        {
+            "images": ["<base64_original_image1>", "<base64_original_image2>, ..."],]
+            "pred_mask": ["<base64_prediction_mask1>", "<base64_prediction_mask2>, ..."],
+            "pred_color": ["<base64_colored_prediction1>", "<base64_colored_prediction2>, ..."]
+        }
+    ```
+
+    - `"pred_mask"` contains the raw predicted mask as a grayscale PNG.
+
+    - `"pred_color"` contains the same mask with a colormap applied.
+    
+    - All images are base64-encoded PNG or JPEG.
+
+    Check README.md for instructions on json conversion
     """
     temp_input_dir, temp_output_dir = handle_input_inference(file)
     

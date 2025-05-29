@@ -2,14 +2,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from src.utils import resolve_path
 from api.routes import predict
 from api.utils import cleanup_temp_dirs
-
+from src.utils import resolve_path
 
 app = FastAPI(
     title="ML Inference API",
-    description="Upload an image to receive a segmentation map from the ML model.",
+    description="Upload an road scene image receive a segmentation map from a trained u-net model.",
     version="1.0.0",
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
@@ -29,3 +28,5 @@ async def root() -> RedirectResponse:
 if __name__ == "__main__":
     cleanup_temp_dirs(resolve_path(""))
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+

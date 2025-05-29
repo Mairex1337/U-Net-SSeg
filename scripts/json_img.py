@@ -1,7 +1,7 @@
-import os
-import json
-import base64
 import argparse
+import base64
+import json
+import os
 
 
 def convert_json_to_images(path_to_json: str, output_path: str) -> None:
@@ -23,6 +23,7 @@ def convert_json_to_images(path_to_json: str, output_path: str) -> None:
 
     required_keys = ["images", "pred_mask", "pred_color"]
     assert all(key in data for key in required_keys), f"JSON must contain: {', '.join(required_keys)}"
+    os.makedirs(output_path, exist_ok=True)
     
     names = data.get("image_names", [f"image_{i}.jpg" for i in range(len(data["images"]))])
     for i, name in enumerate(names):
