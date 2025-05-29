@@ -1,5 +1,5 @@
 import uvicorn
-from api.routes import predict
+from api.routes import predict, json_png
 from api.utils import cleanup_temp_dirs
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
@@ -13,6 +13,7 @@ app = FastAPI(
 )
 
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
+app.include_router(json_png.router, tags=["JSON to Images"])
 
 @app.get('/', include_in_schema=False)
 async def root() -> RedirectResponse:
