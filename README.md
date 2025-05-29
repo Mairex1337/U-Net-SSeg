@@ -1,5 +1,7 @@
 # U-Net Semantic Segmentation model
 
+![alt text](images/seg_example.png)
+
 We trained a U-Net model on the semantic segmentation task via the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. The dataset includes images from road scenes with 19 diverse classes and various locations, times and weathers. The current iteration achieved an accuracy $0.8797$ on the test set vs. a random guessing accuracy of $1/19 \approx 0.0526$.
 
 ## Usage Instructions
@@ -72,7 +74,7 @@ python -m scripts.json_img \
 ### Class Mapping
 
 Colormap class mappings:
-![alt text](images/image.png)
+![alt text](images/color_legend.png)
 
 The class indices in the prediction masks correspond to:
 
