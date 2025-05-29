@@ -101,7 +101,7 @@ def handle_output_inference(temp_input_dir: str, temp_output_dir: str) -> str:
     json_file_name = "output.json"
 
     with open(json_file_name, "w") as outfile:
-        outfile.write(json_output)
+        outfile.write(json_output) #TODO Check if we want this
 
     json_path = os.path.join(cwd, json_file_name)
     return json_path

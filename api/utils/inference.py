@@ -6,27 +6,7 @@ import torchvision.transforms.functional as TF
 from api.data.dataloader import get_inference_dataloader
 from PIL import Image
 from src.utils import (convert_grayscale_to_colored_mask, get_device,
-                       read_config, get_model, get_best_checkpoint,
-                       get_run_dir)
-
-def load_model() -> torch.nn.Module:
-    """
-    Loads the model which will be used for inference.
-
-    Returns:
-        torch.nn.Module: initialized model
-    """
-    cfg = read_config()
-    device = get_device()
-    run_dir = get_run_dir(run_id="1",model_name='baseline') #anpassen
-    checkpoint_dir = os.path.join(run_dir, 'checkpoints')
-    checkpoint_path = get_best_checkpoint(checkpoint_dir)
-    model = get_model(cfg, 'baseline').to(device)
-
-    checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint["model_state_dict"])
-
-    return model
+                       read_config)
 
 
 def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
