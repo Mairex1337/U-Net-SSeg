@@ -21,6 +21,10 @@ We trained a U-Net model on the semantic segmentation task via the [BDD100k](htt
    ```bash
    pip install -r requirements.txt
    ```
+5. Download the model checkpoint:
+   ```bash
+   python -m scripts.download_checkpoint
+   ```
 
 ### Expected Input Format
 

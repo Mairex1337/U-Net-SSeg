@@ -19,4 +19,5 @@ fastapi
 uvicorn
 python-multipart
 opencv-python 
+gdown
 
