@@ -62,10 +62,11 @@ Request via curl:
       -H "Content-Type: multipart/form-data" \
       -F "file=@api_images.json;type=application/json"
    ```
-Change `api_images.json` as needed to the file you want the model to do inference on.
+- Change `api_images.json` as needed to the file you want the model to do inference on.
+- This request will create an output.json file in the root of the repository, see below for instructions on how to convert it to images.
 
 Request via GUI:
-- Open the `/docs` page in your browser (URL printed in terminal).
+- Open the `/docs` page in your browser (URL printed in terminal, should be `http://127.0.0.1:8000`).
 - Go to the `/predict/` endpoint and click **"Try it out"**.
 - Upload `api_images.json` or your own converted file.
 - Click **"Execute"** to run inference.
@@ -87,7 +88,7 @@ python -m scripts.json_img \
 Colormap class mappings:
 ![alt text](images/color_legend.png)
 
-The class indices in the prediction masks correspond to:
+Mask idx to class mappings:
 
 ```yaml
 0: road
