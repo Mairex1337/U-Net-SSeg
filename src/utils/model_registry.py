@@ -54,7 +54,7 @@ def load_model(run_id: str, model_name: str) -> torch.nn.Module:
     checkpoint_path = get_best_checkpoint(checkpoint_dir)
     model = get_model(cfg, model_name).to(device)
 
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
 
     return model
