@@ -55,13 +55,13 @@ Launch the API server:
    python -m api.main
    ```
 Request via CURL:
-    ```bash
-        curl -X POST \
-        http://127.0.0.1:8000/predict/ \
-        -H "accept: application/json" \
-        -H "Content-Type: multipart/form-data" \
-        -F "file=@api_images.json;type=application/json"
-    ```
+   ```bash
+      curl -X POST \
+      http://127.0.0.1:8000/predict/ \
+      -H "accept: application/json" \
+      -H "Content-Type: multipart/form-data" \
+      -F "file=@api_images.json;type=application/json"
+   ```
 
 Request via GUI:
 - Open the `/docs` page in your browser (URL printed in terminal).
