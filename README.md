@@ -54,7 +54,7 @@ Launch the API server:
    ```bash
    python -m api.main
    ```
-Request via CURL:
+Request via curl:
    ```bash
       curl -X POST \
       http://127.0.0.1:8000/predict/ \
@@ -62,6 +62,7 @@ Request via CURL:
       -H "Content-Type: multipart/form-data" \
       -F "file=@api_images.json;type=application/json"
    ```
+Change `api_images.json` as needed to the file you want the model to do inference on.
 
 Request via GUI:
 - Open the `/docs` page in your browser (URL printed in terminal).
