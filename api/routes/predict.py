@@ -23,7 +23,7 @@ async def predict_segmentation(
     
 
     **Input Format:**
-    Upload a `.json` file with the following structure:
+    A `.json` file with the following structure:
     ```json
     {
         "image_names": [
@@ -47,7 +47,7 @@ async def predict_segmentation(
     ```
 
     **Response Format:**
-    A downloadable `output.json` file with keys:
+    A `.json` file with keys:
     ```json
         {
             "images": ["<base64_original_image1>", "<base64_original_image2>, ..."],]
@@ -55,7 +55,8 @@ async def predict_segmentation(
             "pred_color": ["<base64_colored_prediction1>", "<base64_colored_prediction2>, ..."]
         }
     ```
-
+    - `"images"` contains the original (transformed) input images.
+    
     - `"pred_mask"` contains the raw predicted mask as a grayscale PNG.
 
     - `"pred_color"` contains the same mask with a colormap applied.

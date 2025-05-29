@@ -8,7 +8,7 @@ from src.utils import resolve_path
 
 app = FastAPI(
     title="ML Inference API",
-    description="Upload an road scene image receive a segmentation map from a trained u-net model.",
+    description="Upload a road scene image and receive a segmentation mask from a trained u-net model.",
     version="1.0.0",
     swagger_ui_parameters={"defaultModelsExpandDepth": -1}
 )
