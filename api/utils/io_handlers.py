@@ -62,22 +62,21 @@ def img_to_json(img_dir: str):
     Returns:
         str: A JSON string containing base64-encoded image data organized by category.
     """
-    img_dict = {
-        'images': [],
-        'pred_mask': [],
-        'pred_color': []
-    }
+    expected_keys = ['images', 'pred_mask', 'pred_color']
+    img_dict = {key: [] for key in expected_keys}
 
-    dir_list = os.listdir(img_dir)
-    for i, sub_dir in enumerate(dir_list):
-        img_list = os.listdir(os.path.join(img_dir, sub_dir))
-        for j in img_list:
-            with open(os.path.join(img_dir, sub_dir, j), "rb") as image:
-                encoded_string = base64.b64encode(image.read()).decode()
-            list(img_dict.values())[i].append(encoded_string)
+    for key in expected_keys:
+        folder = os.path.join(img_dir, key)
+        if not os.path.isdir(folder):
+            raise ValueError(f"Expected folder '{folder}' not found.")
+        filenames = sorted(os.listdir(folder))
+        for filename in filenames:
+            path = os.path.join(folder, filename)
+            with open(path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode()
+                img_dict[key].append(encoded)
 
-    json_object = json.dumps(img_dict, indent=4)
-    return json_object
+    return json.dumps(img_dict, indent=2)
 
 
 def handle_input_inference(file: UploadFile) -> tuple[str, str]:
