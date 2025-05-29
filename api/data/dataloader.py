@@ -1,7 +1,7 @@
+from api.data.dataset import InferenceDataset
+from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from torch.utils.data import DataLoader
-from scripts.inference.inference_dataset import InferenceDataset
 
 def get_inference_dataloader(
     cfg: dict,
@@ -19,7 +19,7 @@ def get_inference_dataloader(
     Returns:
         Inference DataLoader: A PyTorch DataLoader that samples from the inference dataset.
     """
-    
+
     transform = transforms.Compose([
     transforms.Resize(cfg['transforms']['resize']),
     transforms.ToTensor(),

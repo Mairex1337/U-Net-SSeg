@@ -1,16 +1,16 @@
 import os
 
+import torch.utils.data as data
 from PIL import Image
 from torch import Tensor
 from torchvision import transforms
 
-import torch.utils.data as data
 
 class InferenceDataset(data.Dataset):
     """
     A PyTorch Dataset used for inference.
 
-    Loads images, applies transforms, 
+    Loads images, applies transforms,
     and returns them as tensors.
 
     Args:

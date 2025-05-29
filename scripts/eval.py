@@ -9,8 +9,8 @@ from PIL import Image
 from torch.utils.data import DataLoader
 
 from src.data import get_dataloader
-from src.utils import (SegmentationMetrics, get_best_checkpoint, get_device,
-                       get_logger, get_model, get_run_dir, read_config)
+from src.utils import (SegmentationMetrics, get_device,
+                       get_logger, get_run_dir, read_config, load_model)
 
 
 def evaluate_model(
@@ -56,7 +56,7 @@ def evaluate_model(
     os.makedirs(os.path.join(run_dir, "outputs", "predictions"), exist_ok=True)
     os.makedirs(os.path.join(run_dir, "outputs", "images"), exist_ok=True)
     os.makedirs(os.path.join(run_dir, "outputs", "masks"), exist_ok=True)
-    
+
     mean = torch.tensor(norms['mean']).view(3, 1, 1).to(device)
     std = torch.tensor(norms['std']).view(3, 1, 1).to(device)
 
@@ -79,7 +79,7 @@ def evaluate_model(
                 Image.fromarray(mask_np).save(os.path.join(run_dir, "outputs", "masks", f"{img_idx:05}.png"))
                 TF.to_pil_image(img).save(os.path.join(run_dir, "outputs", "images", f"{img_idx:05}.png"))
 
-            loop.update(len(images))   
+            loop.update(len(images))
 
 
     results = metrics.compute()
@@ -94,15 +94,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     cfg = read_config()
-    device = get_device()
-    model = get_model(cfg, args.model).to(device)
     run_dir = get_run_dir(args.run_id, args.model)
+    device = get_device()
     logger = get_logger(run_dir, "eval.log")
 
-    checkpoints_dir = os.path.join(run_dir, "checkpoints")
-    checkpoint_path = get_best_checkpoint(checkpoints_dir)
-    checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model = load_model(args.run_id, args.model)
     hyperparams = cfg["hyperparams"][args.model]
     dataloader = get_dataloader(cfg=cfg, split="test", batch_size=hyperparams["batch_size"] // 2)
 
