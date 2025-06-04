@@ -8,7 +8,7 @@ We trained a U-Net model on the semantic segmentation task via the [BDD100k](htt
 ### Pre-requisites
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Mairex1337/U-Net-SSeg.git
+   git clone -b submission https://github.com/Mairex1337/U-Net-SSeg.git
    ```
 2. Create and activate a virtual environment:
    ```bash
