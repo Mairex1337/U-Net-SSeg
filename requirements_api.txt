@@ -1,0 +1,14 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.7.0+cpu; sys_platform != "darwin"
+torchvision==0.22.0+cpu; sys_platform != "darwin"
+
+torchmetrics
+pillow
+fastapi[standard]
+uvicorn
+python-multipart
+opencv-python 
+gdown
+
+
