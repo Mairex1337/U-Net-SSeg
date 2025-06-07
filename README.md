@@ -49,11 +49,16 @@ As per the assignment instructions, the API expects a `.json` file containing ba
   ```
 
 ### Running the API
+Download docker-desktop for your os via:
+https://docs.docker.com/desktop/
 
 Launch the API server:
    ```bash
-   python -m api.main
+   docker-compose up -d
    ```
+
+Navigate to http://127.0.0.1 to open the api in your browser
+
 Request via curl:
    ```bash
       curl -X POST \
@@ -72,6 +77,10 @@ Request via GUI:
 - Click **"Execute"** to run inference.
 - Download the `output.json` file from the response.
 
+Close the api:
+   ```bash
+   docker-compose down
+   ```
 
 ### Converting the Output JSON Back to Images
 
