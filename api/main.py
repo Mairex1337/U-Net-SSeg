@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from api.routes import predict
+from api.routes import predict, predict_image
 from api.utils import cleanup_temp_dirs
 from src.utils import resolve_path
 
@@ -14,6 +14,8 @@ app = FastAPI(
 )
 
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
+app.include_router(predict_image.router)
+
 
 @app.get('/', include_in_schema=False)
 async def root() -> RedirectResponse:
@@ -28,5 +30,3 @@ async def root() -> RedirectResponse:
 if __name__ == "__main__":
     cleanup_temp_dirs(resolve_path(""))
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-
