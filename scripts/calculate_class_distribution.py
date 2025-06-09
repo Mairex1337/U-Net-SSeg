@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r'C:\Users\daand\RUG\applied ml\project\U-Net-SSeg')
+
 from collections import defaultdict
 
 import numpy as np
@@ -30,7 +33,14 @@ def calculate_class_distribution() -> None:
     class_distribution = {class_name: int(total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
 
     path = resolve_path("cfg.yaml")
+    id_to_class = {}
+    
+    for class_name in class_distribution.keys():
+        for key, value in colormap_id.items():
+            if class_name == value:
+                id_to_class[key] = class_name
 
+    cfg['class_distribution']["id_to_class"] = id_to_class
     cfg['class_distribution']['total_pixels'] = total_pixels
     cfg['class_distribution']['class_frequencies'] = class_distribution
 
