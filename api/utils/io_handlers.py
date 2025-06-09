@@ -2,7 +2,9 @@ import base64
 import json
 import os
 import shutil
-
+import zipfile
+from io import BytesIO
+from api.utils.file_management import create_temp_dirs
 from fastapi import HTTPException, UploadFile
 
 
@@ -29,11 +31,11 @@ def json_to_img(file :UploadFile = None) -> dict[str, str] | str:
         status_code=400,
         detail="Uploaded file is not of type JSON"
     )
-        
+
     lengths = [len(v) for v in img_dict.values()]
     if not all(length == lengths[0] for length in lengths):
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Values of all JSON categories must be of the same length"
             )
 
@@ -90,10 +92,7 @@ def handle_input_inference(file: UploadFile) -> tuple[str, str]:
         tuple[str, str]:  path to temporary directory for input, path to temporary directory for output
     """
 
-    input_folder_temp = 'temp_input/'
-    output_folder_temp = 'temp_output/'
-    os.makedirs(input_folder_temp, exist_ok=True)
-    os.makedirs(output_folder_temp, exist_ok=True)
+    input_folder_temp, output_folder_temp = create_temp_dirs()
 
     img_dict = json_to_img(file = file)
 
@@ -134,3 +133,25 @@ def handle_output_inference(temp_input_dir: str, temp_output_dir: str) -> str:
 
     json_path = os.path.join(cwd, json_file_name)
     return json_path
+
+
+def create_zip_response(temp_output_dir: str) -> BytesIO:
+    """
+    Creates an in-memory ZIP archive from all files in a given directory.
+
+    Args:
+        temp_output_dir (str): The path to the directory containing files to zip.
+
+    Returns:
+        BytesIO: A BytesIO object containing the zipped data.
+    """
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(temp_output_dir):
+            for file in files:
+                full_path = os.path.join(root, file)
+                arcname = os.path.relpath(full_path, start=temp_output_dir)
+                zipf.write(full_path, arcname)
+
+    zip_buffer.seek(0)
+    return zip_buffer
