@@ -2,12 +2,11 @@ import requests
 from io import BytesIO
 import os
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000") # works with local API but not Docker yet. Maybe work with env variables to make it work with both
+# see if we can do a progress bar by counting entries in temp_input_dir and comparing them with entries in temp_output_dir/color_masks
 
 def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
-    """
-    Send a single image or ZIP file to the FastAPI endpoint expecting 'files' (list of UploadFile).
-    """
+
     response = requests.post(
         f"{API_BASE_URL}/predict-image/returns-zip/",
         files=[("files", (filename, file_bytes))],
@@ -16,9 +15,7 @@ def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
     return BytesIO(response.content)
 
 def upload_video(file_bytes: bytes, filename: str) -> BytesIO:
-    """
-    Send an MP4 video file to the FastAPI endpoint expecting a single UploadFile named 'file'.
-    """
+
     response = requests.post(
         f"{API_BASE_URL}/predict-video/returns-zip/",
         files={"file": (filename, file_bytes, "video/mp4")}
