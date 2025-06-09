@@ -14,8 +14,8 @@ app = FastAPI(
 )
 
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
-app.include_router(predict_image.router)
-app.include_router(predict_video.router)
+app.include_router(predict_image.router, prefix="/predict-image", tags=["Prediction"])
+app.include_router(predict_video.router, prefix="/predict-video", tags=["Prediction"])
 
 
 @app.get('/', include_in_schema=False)

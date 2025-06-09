@@ -7,8 +7,12 @@ from PIL import Image
 
 from api.data.dataloader import get_inference_dataloader
 from src.utils import (convert_grayscale_to_colored_mask, get_device,
-                       read_config)
+                       read_config, load_model)
 
+
+def load_default_model(run_id: str = "1", model_name: str = "unet"):
+    model = load_model(run_id, model_name)
+    return model
 
 def make_prediction(model: torch.nn.Module,  img_dir: str, output_dir: str) -> None:
     """
