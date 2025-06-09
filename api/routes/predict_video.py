@@ -20,7 +20,16 @@ async def predict_video(
     file: UploadFile,
     background_tasks: BackgroundTasks
     ) -> StreamingResponse:
+    """
+    Processes an uploaded video by extracting frames, running segmentation, and returning results as a ZIP file.
 
+    Args:
+        file (UploadFile): The video file (.mp4, .mov, .avi) uploaded by the user.
+        background_tasks (BackgroundTasks): FastAPI background task manager to handle post-response cleanup.
+
+    Returns:
+        StreamingResponse: A streaming response containing a ZIP file with the segmented video and predictions.
+    """
     temp_input_dir, temp_output_dir = create_temp_dirs()
 
     temp_video_path = os.path.join(temp_input_dir, file.filename)

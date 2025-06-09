@@ -3,14 +3,23 @@ import os
 import cv2
 import torch
 import torchvision.transforms.functional as TF
-from PIL import Image
-
 from api.data.dataloader import get_inference_dataloader
+from PIL import Image
 from src.utils import (convert_grayscale_to_colored_mask, get_device,
-                       read_config, load_model)
+                       load_model, read_config)
 
 
-def load_default_model(run_id: str = "1", model_name: str = "unet"):
+def load_default_model(run_id: str = "1", model_name: str = "unet") -> torch.nn.Module:
+    """
+    Loads the default model used for inference.
+
+    Args:
+        run_id (str, optional): The ID of the model run. Defaults to "1".
+        model_name (str, optional): The name of the model architecture. Defaults to "unet".
+
+    Returns:
+        torch.nn.Module: The loaded model.
+    """
     model = load_model(run_id, model_name)
     return model
 

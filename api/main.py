@@ -1,9 +1,8 @@
 import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
-
 from api.routes import predict, predict_image, predict_video
 from api.utils import cleanup_temp_dirs
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from src.utils import resolve_path
 
 app = FastAPI(

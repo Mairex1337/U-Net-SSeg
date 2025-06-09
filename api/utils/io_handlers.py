@@ -135,7 +135,16 @@ def handle_output_inference(temp_input_dir: str, temp_output_dir: str) -> str:
     return json_path
 
 
-def create_zip_response(temp_output_dir):
+def create_zip_response(temp_output_dir: str) -> BytesIO:
+    """
+    Creates an in-memory ZIP archive from all files in a given directory.
+
+    Args:
+        temp_output_dir (str): The path to the directory containing files to zip.
+
+    Returns:
+        BytesIO: A BytesIO object containing the zipped data.
+    """
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, _, files in os.walk(temp_output_dir):

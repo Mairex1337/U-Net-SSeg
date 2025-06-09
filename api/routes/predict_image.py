@@ -6,8 +6,7 @@ from fastapi.responses import StreamingResponse
 from src.utils import resolve_path
 
 router = APIRouter()
-# TODO: add two enpoints that predict on images and videos. return the predicitons
-# then build streamlit app that can display both videos in parallel and lets the user upload predict and maybe save somewhere
+
 # progress bar?
 # more funcitonality???
 
@@ -18,8 +17,21 @@ router = APIRouter()
     tags=["Prediction"],
     response_class=StreamingResponse
 )
-async def predict_image(files: list[UploadFile], background_tasks: BackgroundTasks) -> StreamingResponse:
+async def predict_image(
+    files: list[UploadFile],
+    background_tasks: BackgroundTasks
+    ) -> StreamingResponse:
+    """
+    Accepts JPG images or a ZIP archive of images, runs segmentation on them,
+    and returns the predicted masks and colored overlays in a ZIP file.
 
+    Args:
+        files (List[UploadFile]): A list of uploaded image files (JPG) or ZIP archives containing images.
+        background_tasks (BackgroundTasks): FastAPI BackgroundTasks instance to clean up temporary files after the response.
+
+    Returns:
+        StreamingResponse: A streaming ZIP file containing all predicted masks and color visualizations.
+    """
     temp_input_dir, temp_output_dir = create_temp_dirs()
 
     await extract_files(files, temp_input_dir)

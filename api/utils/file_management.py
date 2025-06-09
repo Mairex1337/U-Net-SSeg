@@ -3,9 +3,15 @@ import shutil
 import zipfile
 
 from fastapi import HTTPException, status
-#TODO: Docstrings
 
-def create_temp_dirs():
+
+def create_temp_dirs() -> tuple[str, str]:
+    """
+    Creates temporary input and output directories if they do not already exist.
+
+    Returns:
+        tuple[str, str]: Paths to the created input and output directories.
+    """
     temp_input_dir = 'temp_input/'
     temp_output_dir = 'temp_output/'
     os.makedirs(temp_input_dir, exist_ok=True)
@@ -32,7 +38,14 @@ def cleanup_temp_dirs(base_dir: str) -> None:
             else:
                 os.remove(path)
 
-def move_jpgs_to_root(root_dir):
+def move_jpgs_to_root(root_dir: str) -> None:
+    """
+    Moves all .jpg and .jpeg files from subdirectories of `root_dir` to the root level.
+
+    Args:
+        root_dir (str): Path to the root directory in which to consolidate JPEG files.
+    """
+
     for current_dir, _, files in os.walk(root_dir):
         for f in files:
             if f.lower().endswith((".jpg", ".jpeg")):
@@ -42,7 +55,21 @@ def move_jpgs_to_root(root_dir):
                     os.rename(full_path, new_path)
 
 
-async def extract_files(files, temp_input_dir):
+async def extract_files(files: list, temp_input_dir: str):
+    """
+    Saves and extracts uploaded image or ZIP files into a temporary input directory.
+
+    Supports .jpg, .jpeg, and .zip files. ZIP files are extracted and their JPEG contents
+    are moved to the root of the input directory.
+
+    Args:
+        files (list): List of uploaded image or ZIP files.
+        temp_input_dir (str): Path to the temporary input directory.
+
+    Raises:
+        HTTPException: If unsupported file types are uploaded, or extraction fails,
+                       or no valid JPEG images are found.
+    """
     supported_extensions = {".jpg", ".jpeg", ".zip"}
 
     for file in files:
