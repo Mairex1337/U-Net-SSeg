@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.api_client import upload_image_or_zip, upload_video
 from io import BytesIO
+import os
 
 
 st.title("🚀 Run Predictions")
@@ -10,13 +11,14 @@ if 'uploaded_files' not in st.session_state:
 else:
     uploaded_files = st.session_state['uploaded_files']
     filenames = [file.name for file in uploaded_files]
-    
+
     selected_filename = st.selectbox("Select a file", filenames)
-    
+
     if st.button("Run Predictions"):
         selected_file = next(file for file in uploaded_files if file.name == selected_filename)
         st.info(f"Running predictions on {selected_file.name}...")
         file_content = BytesIO(selected_file.read())
+
         if selected_file.name.endswith(('.jpg', '.jpeg', '.png', '.zip')):
             result = upload_image_or_zip(file_content, selected_file.name)
         elif selected_file.name.endswith('.mp4'):
@@ -29,7 +31,7 @@ else:
             st.download_button(
                 label="Download Results",
                 data=result,
-                file_name=f"predictions_{selected_file.name}.zip",
+                file_name=f"predictions_{selected_file.name.split('.')[0]}.zip",
                 mime="application/zip"
             )
 
