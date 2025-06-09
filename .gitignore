@@ -15,3 +15,5 @@ outputs
 .pytest_cache
 
 read_validation_results.py
+
+venv/

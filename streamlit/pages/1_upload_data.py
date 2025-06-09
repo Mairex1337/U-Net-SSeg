@@ -5,11 +5,17 @@ import os
 
 st.title("📤 Upload Data for Predictions")
 
+if 'uploaded_files' not in st.session_state:
+    st.session_state['uploaded_files'] = []
+
 option = st.radio("Choose input type:", ["Image or ZIP", "Video"])
-uploaded_file = st.file_uploader("Upload file", type=["jpg", "zip", "mp4"])
+if option == "Video":
+    uploaded_file = st.file_uploader("Upload video file", type=["mp4"])
+elif option == "Image or ZIP":
+    uploaded_file = st.file_uploader("Upload file", type=["jpg", "zip"])
 
 if uploaded_file and st.button("Send to backend"):
-    st.info("Processing...")
+    st.session_state['uploaded_files'].append(uploaded_file)
 
     filename = uploaded_file.name
-    file_bytes = uploaded_file.getvalue()
+    st.success(f"File '{filename}' uploaded successfully!")
