@@ -1,13 +1,9 @@
-import sys
-sys.path.append(r'C:\Users\daand\RUG\applied ml\project\U-Net-SSeg')
-
 from collections import defaultdict
 
 import numpy as np
-import yaml
 
 from src.data import get_dataloader
-from src.utils import read_config, resolve_path, write_config
+from src.utils import read_config, write_config
 
 
 def calculate_class_distribution() -> None:
@@ -32,7 +28,6 @@ def calculate_class_distribution() -> None:
     total_pixels = int(sum(pixel_counts.values()))
     class_distribution = {class_name: int(total_pixels_class) for class_name, total_pixels_class in pixel_counts.items()}
 
-    path = resolve_path("cfg.yaml")
     id_to_class = {}
     
     for class_name in class_distribution.keys():
