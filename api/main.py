@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from api.routes import predict, predict_image
+from api.routes import predict, predict_image, predict_video
 from api.utils import cleanup_temp_dirs
 from src.utils import resolve_path
 
@@ -15,6 +15,7 @@ app = FastAPI(
 
 app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
 app.include_router(predict_image.router)
+app.include_router(predict_video.router)
 
 
 @app.get('/', include_in_schema=False)
