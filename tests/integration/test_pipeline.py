@@ -12,7 +12,7 @@ from torchvision.transforms.functional import to_pil_image
 
 
 @pytest.fixture(scope="session")
-def calculate_means_once():
+def calculate_means_once(toy_dataset):
     """Fixture that calculates dataset-wide mean and std only once per test session."""
     calculate_mean_std()
 
