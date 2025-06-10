@@ -3,6 +3,7 @@ import os
 import torch.utils.data as data
 from PIL import Image
 from src.data.transforms import Compose
+from src.utils import transform_classes
 
 
 class SegmentationDataset(data.Dataset):
@@ -57,6 +58,8 @@ class SegmentationDataset(data.Dataset):
         mask_path = os.path.join(self.mask_dir, f'{self.img_idx[idx]}.png')
         img = Image.open(img_path)
         mask = Image.open(mask_path)
+        mask = transform_classes(mask)
+        
         if self.transforms:
             img_t, mask_t = self.transforms(img, mask)
         else:

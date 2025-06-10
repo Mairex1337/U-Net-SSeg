@@ -7,9 +7,6 @@ from src.utils import resolve_path
 
 router = APIRouter()
 
-# progress bar?
-# more funcitonality???
-
 
 @router.post(
     "/returns-zip/",

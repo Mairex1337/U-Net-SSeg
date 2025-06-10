@@ -15,3 +15,9 @@ outputs
 .pytest_cache
 
 read_validation_results.py
+
+venv/
+
+streamlit/session_state.pkl
+
+.env
