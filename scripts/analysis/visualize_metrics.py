@@ -38,7 +38,7 @@ def plot_training_metrics(train_df, output_dir):
         plt.savefig(os.path.join(output_dir, 'learning_rate.png'))
         plt.close()
 
-def plot_evaluation_metrics(eval_df, class_df, output_dir):
+def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
 
     plt.figure(figsize=(12, 6))
     global_metrics = eval_df[['pixel_accuracy', 'mean_accuracy', 'mean_iou', 'mean_dice']].mean().to_frame().reset_index()
@@ -96,6 +96,30 @@ def plot_evaluation_metrics(eval_df, class_df, output_dir):
     plt.savefig(os.path.join(output_dir, 'precision_recall_tradeoff.png'))
     plt.close()
 
+    plt.figure(figsize=(10, 6))
+    heatmap_data = class_df.set_index('class')[['iou', 'dice', 'precision', 'recall']]
+    sns.heatmap(heatmap_data, annot=True, fmt=".2f", cmap="YlGnBu", cbar=True)
+    plt.title("Per-Class Evaluation Metrics Heatmap")
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'class_metrics_heatmap.png'))
+    plt.close()
+
+    plt.figure(figsize=(8, 6))
+    sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='train_loss', label='Train Loss')
+    if 'val_loss' in train_df.columns:
+        sns.lineplot(data=train_df[train_df['type'] == 'val'], x='epoch', y='val_loss', label='Validation Loss')
+    # Add horizontal line for final evaluation loss (converted from mean dice)
+    if not eval_df.empty:
+        mean_eval_loss = 1 - eval_df['mean_dice'].values[0]
+        plt.axhline(mean_eval_loss, color='red', linestyle='--', label='Eval (1 - Dice)')
+    plt.title("Train vs Validation Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'train_val_loss_comparison.png'))
+    plt.close()
+
 def visualize_run(run_dir):
     output_dir = os.path.join(run_dir, 'visualizations')
     os.makedirs(output_dir, exist_ok=True)
@@ -116,7 +140,7 @@ def visualize_run(run_dir):
     print(f"\nEvaluation plots condition: {eval_condition}")
     
     if eval_condition:
-        plot_evaluation_metrics(eval_df, class_df, output_dir)
+        plot_evaluation_metrics(eval_df, class_df, train_df, output_dir)
         print(f"Generated evaluation visualizations in {output_dir}")
     else:
         print("Skipping evaluation plots because:")
