@@ -32,14 +32,6 @@ def plot_training_metrics(train_df, output_dir):
     plt.xlabel('Epoch')
     plt.ylabel('Learning Rate')
     
-    # Plot memory usage if available
-    if 'memory_usage' in train_df.columns:
-        plt.subplot(2, 2, 4)
-        sns.lineplot(data=train_df, x='epoch', y='memory_usage')
-        plt.title('GPU Memory Usage')
-        plt.xlabel('Epoch')
-        plt.ylabel('Memory (GB)')
-    
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'training_metrics.png'))
     plt.close()
