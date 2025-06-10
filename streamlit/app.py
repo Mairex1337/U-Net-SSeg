@@ -1,5 +1,6 @@
 import streamlit as st
+from utils import configure_layout
 
-st.set_page_config(page_title="Prediction App", layout="wide")
 
+configure_layout()
 st.markdown(open("streamlit/Instructions.md").read())

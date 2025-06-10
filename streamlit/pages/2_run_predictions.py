@@ -1,9 +1,12 @@
-import streamlit as st
-from utils.api_client import upload_image_or_zip, upload_video
 from io import BytesIO
-import os
+
+import streamlit as st
+from utils import (configure_layout, session_sidebar, upload_image_or_zip,
+                   upload_video)
 
 
+configure_layout()
+session_sidebar()
 st.title("🚀 Run Predictions")
 
 if 'uploaded_files' not in st.session_state:
@@ -26,17 +29,16 @@ else:
         else:
             st.error("Unsupported file type.")
             result = None
+
+        if 'results' not in st.session_state:
+            st.session_state['results'] = {}
+
         if result:
             st.success("Predictions completed successfully! Dowload here or see the results on the next page.")
+            st.session_state['results'][selected_filename] = result
             st.download_button(
                 label="Download Results",
                 data=result,
                 file_name=f"predictions_{selected_file.name.split('.')[0]}.zip",
                 mime="application/zip"
             )
-
-        # Store the results
-        if 'results' not in st.session_state:
-            st.session_state['results'] = {}
-
-        st.session_state['results'][selected_filename] = result

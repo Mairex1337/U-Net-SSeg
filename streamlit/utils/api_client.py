@@ -2,8 +2,8 @@ import requests
 from io import BytesIO
 import os
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000") # works with local API but not Docker yet. Maybe work with env variables to make it work with both
-# see if we can do a progress bar by counting entries in temp_input_dir and comparing them with entries in temp_output_dir/color_masks
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000") #TODO: works with local API but not Docker yet. Maybe work with env variables to make it work with both
+#TODO: see if we can do a progress bar by counting entries in temp_input_dir and comparing them with entries in temp_output_dir/color_masks
 
 def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
 

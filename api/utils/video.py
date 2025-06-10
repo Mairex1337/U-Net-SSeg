@@ -99,7 +99,7 @@ def assemble_video_from_masks(output_dir: str, frame_count: int, width: int, hei
     output_video_path = os.path.join(output_dir, "predicted_video.mp4")
     out = cv2.VideoWriter(
         output_video_path,
-        cv2.VideoWriter_fourcc(*'mp4v'),
+        cv2.VideoWriter_fourcc(*'avc1'),
         fps,
         (width, height)
     )
