@@ -18,6 +18,8 @@ pillow
 fastapi
 uvicorn
 python-multipart
-opencv-python 
+opencv-python
 gdown
-
+streamlit
+requests
+dotenv
