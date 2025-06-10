@@ -57,12 +57,12 @@ Launch the API server:
    docker-compose up -d
    ```
 
-Navigate to http://127.0.0.1 to open the api in your browser
+Navigate to http://127.0.0.1:80 to open the api in your browser
 
 Request via curl:
    ```bash
       curl -X POST \
-      http://127.0.0.1:8000/predict/ \
+      http://127.0.0.1:80/predict/ \
       -H "accept: application/json" \
       -H "Content-Type: multipart/form-data" \
       -F "file=@your_images.json;type=application/json"
@@ -71,7 +71,7 @@ Request via curl:
 - This request will create an output.json file in the root of the repository, see below for instructions on how to convert it to images.
 
 Request via GUI:
-- Open the `/docs` page in your browser (`http://127.0.0.1:8000`).
+- Open the `/docs` page in your browser (`http://127.0.0.1:80`).
 - Go to the `/predict/` endpoint and click **"Try it out"**.
 - Upload `api_images.json` or your own converted file.
 - Click **"Execute"** to run inference.

@@ -3,7 +3,7 @@ FROM python:3.12-slim
 
 WORKDIR /code
 
-#it needs did otherwise opencv doesn't run
+#it needs this otherwise opencv doesn't run
 RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 && rm -rf /var/lib/apt/lists/*
 
 
