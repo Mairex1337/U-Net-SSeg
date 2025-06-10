@@ -122,6 +122,9 @@ def process_run_directory(run_dir):
     run_dir = Path(run_dir)
     print(f"\nProcessing: {run_dir}")
     
+    train_log = next(run_dir.glob('training.log'), None)
+    train_df = parse_training_log(train_log) if train_log else pd.DataFrame()
+
     # Find evaluation log
     eval_log = next(run_dir.glob('eval.log'), None)
     
@@ -135,4 +138,4 @@ def process_run_directory(run_dir):
     if not global_metrics:
         print("Failed to parse evaluation metrics")
         
-    return pd.DataFrame(), pd.DataFrame([global_metrics]), class_df
+    return train_df, pd.DataFrame([global_metrics]), class_df
