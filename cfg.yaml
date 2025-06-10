@@ -70,7 +70,7 @@ hyperparams:
     hidden_dim: 128
     input_dim: 3
     lr: 0.001
-    num_classes: 19
+    num_classes: 14
     weight_decay: 0.0001
   unet:
     base_channels: 64
@@ -78,7 +78,7 @@ hyperparams:
     epochs: 150
     in_channels: 3
     lr: 0.001
-    num_classes: 19
+    num_classes: 14
     weight_decay: 0.0001
 original_class_distribution:
   class_frequencies:
