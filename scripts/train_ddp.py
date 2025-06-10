@@ -18,7 +18,8 @@ from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
 def train_ddp(
         rank: int,
         world_size: int,
-        model_name: Literal['baseline', 'unet']
+        model_name: Literal['baseline', 'unet'],
+        loss_name: Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice']
 ) -> None:
     """
     Dispatch a distributed training job for the specified model.

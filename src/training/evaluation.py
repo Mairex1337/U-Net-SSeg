@@ -85,6 +85,48 @@ class DiceLoss(nn.Module):
         return 1 - dice
 
 
+class MixedDiceCle(nn.Module):
+    """
+    Mixed Dice/Cle Loss for multi-class semantic segmentation.
+
+    Args:
+        num_classes (int): Total number of classes in the segmentation task.
+        cle_weight (float): weight scalar for cle part (must be in [0.0, 1.0])
+        dice_weight (float): weight scalar for dice part (must be in [0.0, 1.0])
+        ignore_index (int): Label index to ignore during loss computation. 
+        eps (float): Smoothing term to avoid division by zero.
+    """
+    def __init__(
+            self,
+            num_classes: int,
+            cle_weight: float = 0.5,
+            dice_weight: float = 0.5,
+            ignore_index: int = 255,
+            eps: float = 1e-6
+        ) -> None:
+        super().__init__()
+        assert 0.0 <= cle_weight <= 1.0 and 0.0 <= dice_weight <= 1.0
+        assert cle_weight + dice_weight == 1.0
+        self.cle = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        self.dice = DiceLoss(num_classes, ignore_index, eps)
+        self.cle_weight = cle_weight
+        self.dice_weight = dice_weight
+    
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> float:
+        """
+        Args:
+            logits (torch.Tensor): B, C, H, W raw outputs
+            targets (torch.Tensor): B, H, W ground truth class indices
+
+        Returns:
+            loss (float): mixed loss
+        """
+        cle = self.cle(logits, targets)
+        dice = self.dice(logits, targets)
+        total = (self.cle_weight * cle) + (self.dice_weight * dice)
+        return total
+
+
 class OHEMLoss(nn.Module):
     """
     Computes CEL only for the top-k percent hardest pixels.
@@ -105,7 +147,7 @@ class OHEMLoss(nn.Module):
         self.ignore_index = ignore_index
         self.topk = top_k_percent
 
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor):
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> float:
         """
         Args:
             logits (torch.Tensor): B, C, H, W raw outputs
