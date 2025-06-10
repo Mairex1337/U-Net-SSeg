@@ -5,11 +5,8 @@ import os
 import numpy as np
 
 def plot_training_metrics(train_df, output_dir):
-    """Plot training and validation metrics"""
-    plt.figure(figsize=(15, 10))
     
-    # Plot training and validation loss
-    plt.subplot(2, 2, 1)
+    plt.figure(figsize=(10,6))
     sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='train_loss', label='Train')
     if 'val_loss' in train_df.columns:
         sns.lineplot(data=train_df[train_df['type'] == 'val'], x='epoch', y='val_loss', label='Validation')
@@ -17,28 +14,32 @@ def plot_training_metrics(train_df, output_dir):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    
-    # Plot throughput
-    plt.subplot(2, 2, 2)
-    sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='throughput')
-    plt.title('Training Throughput (samples/sec)')
-    plt.xlabel('Epoch')
-    plt.ylabel('Throughput')
-    
-    # Plot learning rate
-    plt.subplot(2, 2, 3)
-    sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='lr')
-    plt.title('Learning Rate Schedule')
-    plt.xlabel('Epoch')
-    plt.ylabel('Learning Rate')
-    
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'training_metrics.png'))
+    plt.savefig(os.path.join(output_dir, 'training_plot.png'))
     plt.close()
+    
+    if 'throughput' in train_df.columns:
+        plt.figure(figsize=(10,6))
+        sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='throughput')
+        plt.title('Training Throughput (samples/sec)')
+        plt.xlabel('Epoch')
+        plt.ylabel('Throughput')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'throughput.png'))
+        plt.close()
+    
+    if 'lr' in train_df.columns:
+        plt.figure(figsize=(10,6))
+        sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='lr')
+        plt.title('Learning Rate Schedule')
+        plt.xlabel('Epoch')
+        plt.ylabel('Learning Rate')
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, 'learning_rate.png'))
+        plt.close()
 
 def plot_evaluation_metrics(eval_df, class_df, output_dir):
-    """Plot comprehensive evaluation metrics"""
-    # 1. Global Metrics Comparison
+
     plt.figure(figsize=(12, 6))
     global_metrics = eval_df[['pixel_accuracy', 'mean_accuracy', 'mean_iou', 'mean_dice']].mean().to_frame().reset_index()
     global_metrics.columns = ['Metric', 'Value']
@@ -48,7 +49,7 @@ def plot_evaluation_metrics(eval_df, class_df, output_dir):
     plt.savefig(os.path.join(output_dir, 'global_metrics.png'))
     plt.close()
 
-    # 2. Per-Class Metric Distributions
+
     plt.figure(figsize=(12, 8))
     class_melted = class_df.melt(id_vars=['class'], 
                                 value_vars=['iou', 'dice', 'precision', 'recall'],
@@ -60,17 +61,14 @@ def plot_evaluation_metrics(eval_df, class_df, output_dir):
     plt.savefig(os.path.join(output_dir, 'class_metric_distributions.png'))
     plt.close()
 
-    # 3. Class-Specific IoU Rankings (Top-N and Bottom-N)
     plt.figure(figsize=(12, 10))
     class_df_sorted = class_df.sort_values('iou', ascending=False)
     
-    # Top 10 classes
     plt.subplot(2, 1, 1)
     sns.barplot(data=class_df_sorted.head(10), x='iou', y='class', palette='viridis')
     plt.title('Top 10 Classes by IoU Score')
     plt.xlim(0, 1)
     
-    # Bottom 10 classes
     plt.subplot(2, 1, 2)
     sns.barplot(data=class_df_sorted.tail(10), x='iou', y='class', palette='magma')
     plt.title('Bottom 10 Classes by IoU Score')
@@ -80,12 +78,11 @@ def plot_evaluation_metrics(eval_df, class_df, output_dir):
     plt.savefig(os.path.join(output_dir, 'class_iou_rankings.png'))
     plt.close()
 
-    # 4. Precision-Recall Tradeoff per Class
+
     plt.figure(figsize=(12, 8))
     sns.scatterplot(data=class_df, x='recall', y='precision', hue='class', 
                    s=100, alpha=0.7, palette='tab20')
     
-    # Annotate outliers
     for line in range(class_df.shape[0]):
         if class_df['iou'].iloc[line] < 0.2 or class_df['iou'].iloc[line] > 0.8:
             plt.text(class_df['recall'].iloc[line]+0.01, 
