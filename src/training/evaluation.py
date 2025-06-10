@@ -87,7 +87,7 @@ class DiceLoss(nn.Module):
 
 class EarlyStopping:
     """
-    Early stops training if the monitored metric doesn't improve after a given patience.
+    Early stops training if the mean metrics don't improve after a given patience.
 
     Args:
         patience (int): How many epochs to wait after last improvement.
@@ -101,17 +101,34 @@ class EarlyStopping:
         self.counter = 0
         self.best_score = None
         self.early_stop = False
+    
+    def get_metric_score(self, results: dict) -> float:
+        """
+        Determine total score from mean accuracy, mIoU, and mDice.
 
-    def __call__(self, current_score: float) -> bool:
+        Args:
+            results (dict): Results dictionary containing metrics.
+
+        Returns:
+            float: Sum of the mean metrics
+        """
+        s = 0.0
+        for k, v in results.items():
+            if k in ["Mean_Accuracy", "mIoU", "mDice"]:
+                s += v
+        return s
+
+    def __call__(self, results: dict) -> bool:
         """
         Determine whether to early stop training.
 
         Args:
-            current_score (float): Score on the metric for current epoch.
+            results (dict): Results dictionary containing metrics.
 
         Returns:
             bool: Boolean indicating whether or not to early stop training.
         """
+        current_score = self.get_metric_score(results)
         if self.best_score is None:
             self.best_score = current_score
             return False

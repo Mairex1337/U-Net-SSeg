@@ -129,7 +129,7 @@ def train_ddp(
             if val_loss < trainer.best_val_loss:
                 trainer.best_checkpoint = epoch
                 trainer.best_val_loss = val_loss
-        stop_flag = early_stopping(results["mIoU"])
+        stop_flag = early_stopping(results)
 
         if stop_flag:
             if rank == 0 :
