@@ -10,7 +10,7 @@ import yaml
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
-from src.training import EarlyStopping, Trainer, get_weighted_criterion
+from src.training import EarlyStopping, Trainer, get_loss_function
 from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
                        read_config, setup_ddp_process, write_config)
 
@@ -19,7 +19,8 @@ def train_ddp(
         rank: int,
         world_size: int,
         model_name: Literal['baseline', 'unet'],
-        loss_name: Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice']
+        loss_name: Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice'],
+        tuning: bool = False
 ) -> None:
     """
     Dispatch a distributed training job for the specified model.
@@ -43,7 +44,10 @@ def train_ddp(
     )
 
     if rank == 0:
-        run_dir = get_run_dir(cfg['runs'][model_name], model_name)
+        if not tuning:
+            run_dir = get_run_dir(cfg['runs'][model_name], model_name)
+        else:
+            run_dir = get_run_dir(os.path.join('tuning', cfg['runs'][model_name]), model_name)
         chkpt_dir = os.path.join(run_dir, 'checkpoints')
         # save copy of cfg.yaml in run dir
         with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
@@ -101,7 +105,7 @@ def train_ddp(
 
     early_stopping = EarlyStopping(patience=15)
 
-    criterion = get_weighted_criterion(cfg, device=rank)
+    criterion = get_loss_function(loss_name, cfg, device=rank)
 
     trainer = Trainer(
         model=model,
@@ -125,11 +129,11 @@ def train_ddp(
         trainer.train_epoch(epoch)
         results = trainer.validate_epoch(epoch)
         metric_score = early_stopping.get_metric_score(results)
-        if rank == 0:
+        if rank == 0 and not tuning:
             trainer.save_checkpoint(epoch, raw_model)
-            if metric_score < trainer.best_metric:
-                trainer.best_checkpoint = epoch
-                trainer.best_metric = metric_score
+        if metric_score < trainer.best_metric:
+            trainer.best_checkpoint = epoch
+            trainer.best_metric = metric_score
 
         if early_stopping(metric_score):
             if rank == 0 :
@@ -138,7 +142,9 @@ def train_ddp(
     dist.barrier()
 
     if rank == 0:
-        trainer.determine_best_checkpoint()
+        if not tuning:
+            trainer.determine_best_checkpoint()
+            logger.info(f"metric_score: {trainer.best_metric}, best_checkpoint_epoch: {trainer.best_checkpoint}")
         # increment run_id
         run_id = int(cfg['runs'][model_name])
         cfg['runs'][model_name] = str(run_id + 1)
@@ -149,9 +155,15 @@ def train_ddp(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['baseline', 'unet'], required=True)
+    parser.add_argument(
+        '--loss',
+        type=str,
+        choices=['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice'],
+        required=True
+    )
     args = parser.parse_args()
     world_size = torch.cuda.device_count()
     mp.spawn(train_ddp,
-            args=(world_size, args.model,),
+            args=(world_size, args.model, args.loss, False,),
             nprocs=world_size,
             join=True)
