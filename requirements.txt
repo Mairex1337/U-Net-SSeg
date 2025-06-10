@@ -23,3 +23,5 @@ gdown
 streamlit
 requests
 dotenv
+numpy
+pytest

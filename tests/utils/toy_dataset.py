@@ -5,8 +5,8 @@ from typing import Any, Tuple
 import numpy as np
 import pytest
 import scripts.calculate_means as cm
-import src.data.dataset as dataset_mod
-import src.utils.path as path_utils
+import src.data.dataloader as dl
+import src.utils
 import yaml
 from PIL import Image
 
@@ -70,6 +70,7 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
     for d in (train_img, train_mask, val_img, val_mask):
         d.mkdir(parents=True)
 
+    # 3 red images, 2 green, 1 blue
     make_image(train_img / "0.jpg", (255, 0, 0))
     make_asymmetric_mask(train_mask / "0.png")
     make_image(train_img / "1.jpg", (0, 255, 0))
@@ -98,32 +99,21 @@ def toy_dataset(tmp_path: Path, monkeypatch: Any) -> str:
             "resize": [2, 2],
             "normalize": {"mean": [0, 0, 0], "std": [1, 1, 1]},
             "flip": 0.5,
+            "max_scale": 1.0,
+            "min_scale": 0.35,
+            "og_scale": [4, 4],
         },
     }
     cfg_path = tmp_path / "cfg.yaml"
     with open(cfg_path, "w") as f:
         yaml.safe_dump(cfg, f)
 
-    def fake_resolve_path(path: str) -> str:
-        """
-        Custom path resolver for tests to return our temporary config path.
+    def _write_patched_config(cfg: dict[str, Any]) -> None:
+        with open(cfg_path, "w") as f:
+            yaml.safe_dump(cfg, f)
 
-        Args:
-            path (str): The file path requested.
-            up (int): How many directory levels to go up (ignored here for testing).
-
-        Returns:
-            str: The appropriate path to use for config or data access.
-        """
-        if os.path.basename(path) == "cfg.yaml":
-            return str(cfg_path)
-        return path
-
-    monkeypatch.setenv("PYTHONPATH", str(tmp_path))
     monkeypatch.setattr(cm, "read_config", lambda: yaml.safe_load(cfg_path.read_text()))
-    monkeypatch.setattr(cm, "resolve_path", fake_resolve_path)
-    monkeypatch.setattr(dataset_mod, "resolve_path", lambda p: p)
-    monkeypatch.setattr(path_utils, "resolve_path", lambda p: p)
-    monkeypatch.setattr(cm, "write_config", lambda cfg: yaml.safe_dump(cfg, open(cfg_path, "w")))
+    monkeypatch.setattr(cm, "write_config", _write_patched_config)
+    monkeypatch.setattr(dl, "resolve_path", lambda p: p)
 
     return str(cfg_path)

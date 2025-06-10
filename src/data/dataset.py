@@ -2,6 +2,9 @@ import os
 
 import torch.utils.data as data
 from PIL import Image
+from torch import Tensor
+from torchvision.transforms.functional import pil_to_tensor, to_tensor
+
 from src.data.transforms import Compose
 from src.utils import transform_classes
 
@@ -59,12 +62,9 @@ class SegmentationDataset(data.Dataset):
         img = Image.open(img_path)
         mask = Image.open(mask_path)
         mask = transform_classes(mask)
-        
+
         if self.transforms:
             img_t, mask_t = self.transforms(img, mask)
-        else:
-            img_t  = img
-            mask_t = mask
         if self.debug:
             return img_t, mask_t, to_tensor(img), pil_to_tensor(mask), self.img_idx[idx]
         return img_t, mask_t

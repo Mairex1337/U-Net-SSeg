@@ -1,7 +1,7 @@
 import pytest
 import yaml
 from scripts.calculate_means import calculate_mean_std
-from tests.integration.utils.toy_dataset import toy_dataset
+from tests.utils import toy_dataset
 
 
 def test_calculate_mean_std_updates_cfg(toy_dataset: str) -> None:
