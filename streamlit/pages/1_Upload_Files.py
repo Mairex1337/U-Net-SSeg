@@ -12,7 +12,16 @@ if 'uploaded_files' not in st.session_state:
 uploaded_file = st.file_uploader("Upload an image, ZIP file, or video", type=["jpg", "zip", "mp4"])
 
 if uploaded_file and st.button("Save File"):
-    st.session_state['uploaded_files'].append(uploaded_file)
+    content = uploaded_file.read()
+    st.session_state['uploaded_files'].append({
+        "name": uploaded_file.name,
+        "type": uploaded_file.type,
+        "content": content,
+    })
 
-    filename = uploaded_file.name
-    st.success(f"File '{filename}' uploaded successfully!")
+    st.success(f"File '{uploaded_file.name}' uploaded successfully!")
+
+if st.session_state['uploaded_files']:
+    st.subheader("Uploaded Files")
+    for file in st.session_state['uploaded_files']:
+        st.write(f"- {file['name']} ({file['type']})")
