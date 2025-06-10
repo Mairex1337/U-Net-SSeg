@@ -6,6 +6,18 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000") #TODO: works w
 #TODO: see if we can do a progress bar by counting entries in temp_input_dir and comparing them with entries in temp_output_dir/color_masks
 
 def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
+    """Uploads an image or ZIP file to the prediction API and returns the result.
+
+    Args:
+        file_bytes (bytes): Byte content of the uploaded image or ZIP.
+        filename (str): The name of the uploaded file.
+
+    Returns:
+        BytesIO: The returned ZIP file as a BytesIO stream.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API call fails.
+    """
 
     response = requests.post(
         f"{API_BASE_URL}/predict-image/returns-zip/",
@@ -15,7 +27,18 @@ def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
     return BytesIO(response.content)
 
 def upload_video(file_bytes: bytes, filename: str) -> BytesIO:
+    """Uploads a video to the prediction API and returns the result ZIP.
 
+    Args:
+        file_bytes (bytes): Byte content of the video.
+        filename (str): The name of the uploaded video file.
+
+    Returns:
+        BytesIO: The returned ZIP file as a BytesIO stream.
+
+    Raises:
+        requests.exceptions.HTTPError: If the API call fails.
+    """
     response = requests.post(
         f"{API_BASE_URL}/predict-video/returns-zip/",
         files={"file": (filename, file_bytes, "video/mp4")}

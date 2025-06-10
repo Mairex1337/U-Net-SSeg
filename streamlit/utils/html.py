@@ -1,4 +1,13 @@
-def video_tag(base64_video: str, video_id: str):
+def video_tag(base64_video: str, video_id: str) -> str:
+    """Generates an HTML video tag from a base64-encoded string.
+
+    Args:
+        base64_video (str): The base64-encoded MP4 video string.
+        video_id (str): The HTML ID attribute for the video tag.
+
+    Returns:
+        str: HTML snippet containing a single video element.
+    """
     return f"""
     <div style="flex: 1; padding: 0 10px;">
     <video id="{video_id}" style="width: 100%; max-width: 100%;" controls>
@@ -9,7 +18,16 @@ def video_tag(base64_video: str, video_id: str):
     """
 
 
-def video_html(b64_original: str, b64_predicted: str):
+def video_html(b64_original: str, b64_predicted: str) -> str:
+    """Generates HTML to display two side-by-side videos and a play button.
+
+    Args:
+        b64_original (str): Base64-encoded original video.
+        b64_predicted (str): Base64-encoded predicted video.
+
+    Returns:
+        str: HTML snippet containing two videos and a play button.
+    """
     return f"""
     <div style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%;">
     {video_tag(b64_original, "vid1")}

@@ -4,7 +4,8 @@ import os
 
 SESSION_STATE_FILE = "streamlit/session_state.pkl" #TODO: Refactor to config
 
-def session_sidebar():
+def session_sidebar() -> None:
+    """Displays sidebar buttons to save, load, or clear Streamlit session state."""
     st.sidebar.markdown("## 🔧 Session Management")
 
     if st.sidebar.button("💾 Save"):
@@ -27,7 +28,8 @@ def session_sidebar():
             os.remove(SESSION_STATE_FILE)
             st.sidebar.success("Session cleared.")
 
-def configure_layout():
+def configure_layout() -> None:
+    """Configures the initial Streamlit page layout."""
     st.set_page_config(
         page_title="AML - U-Net Semantic Segmentation",
         page_icon="🧠",
