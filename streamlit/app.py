@@ -4,4 +4,7 @@ from utils import configure_layout
 
 load_dotenv()
 configure_layout()
-st.markdown(open("streamlit/Instructions.md").read())
+with open("streamlit/Instructions.md", "r", encoding="utf-8") as f:
+    instructions = f.read()
+
+st.markdown(instructions)
