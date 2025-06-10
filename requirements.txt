@@ -22,3 +22,4 @@ opencv-python
 gdown
 streamlit
 requests
+dotenv
