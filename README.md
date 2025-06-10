@@ -1,27 +1,113 @@
-# Very Epic Machine Learning Project
+# U-Net Semantic Segmentation model
 
-`WOW`
+![alt text](images/seg_example.png)
 
-### Rules for running files and imports so that it consistently works!!!
-- Always use absolute imports -> `from src.data.dataset import SegmentationDataset`
-- Always run files from the root of the directory!
-- Run them like this and it will always work -> `python -m src.utils.calculate_means` (no `.py`)
-- If you want your VSCode play button to work, set this in `.vscode/launch.json` in the root of the project:
-    `"cwd": "${workspaceFolder}"`
+We trained a U-Net model on the semantic segmentation task via the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. The dataset includes images from road scenes with 19 diverse classes and various locations, times and weathers. The current iteration achieved an accuracy $0.8797$ on the test set vs. a random guessing accuracy of $1/19 \approx 0.0526$.
 
-### How to set up your data/ directory
-- Make sure you downloaded the zips for semantic segmentation, 10kimages train, 10kimages val, 10kimages test.
-- Order them as specified in the cfg.yaml.
+## Usage Instructions
+### Pre-requisites
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Mairex1337/U-Net-SSeg.git
+   ```
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Navigate to the project root:
+   ```bash
+   cd U-Net-SSeg
+   ```
+4. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Download the model checkpoint:
+   ```bash
+   python -m scripts.download_checkpoint
+   ```
 
-### Other
-- Please also install and configure Isort plugin to sort imports nicely :)
-    - Put this into your settings.json after installing:
+### Expected Input Format
+
+As per the assignment instructions, the API expects a `.json` file containing base64-encoded image data:
+
 ```json
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit",
-    }
-  }
+{
+  "image_names": ["name.jpg", ...],
+  "images": ["/9j/4AAQSkZJRgABAQAAAQABAAD/...", ...]
+}
 ```
-- Hyperparameters should be stored in cfg.yaml in the future, there is a read_config function in utils/ dir.
+
+- You can use the provided `api_images.json`, or convert your own images with:
+
+  ```bash
+  python -m scripts.img_json \
+    --path-to-images /path/to/image_folder \
+    --output-path /path/to/save/json \
+    --file-name optional_filename.json
+  ```
+
+### Running the API
+
+Launch the API server:
+   ```bash
+   python -m api.main
+   ```
+Request via curl:
+   ```bash
+      curl -X POST \
+      http://127.0.0.1:8000/predict/ \
+      -H "accept: application/json" \
+      -H "Content-Type: multipart/form-data" \
+      -F "file=@your_images.json;type=application/json"
+   ```
+- Change `"your_images.json"` as needed to either `api_images.json` or your custom image `.json` file.
+- This request will create an output.json file in the root of the repository, see below for instructions on how to convert it to images.
+
+Request via GUI:
+- Open the `/docs` page in your browser (`http://127.0.0.1:8000`).
+- Go to the `/predict/` endpoint and click **"Try it out"**.
+- Upload `api_images.json` or your own converted file.
+- Click **"Execute"** to run inference.
+- Download the `output.json` file from the response.
+
+
+### Converting the Output JSON Back to Images
+
+To view the predictions, convert the `output.json` back to images using:
+
+```bash
+python -m scripts.json_img \
+  --path-to-json /path/to/output.json \
+  --output-path /path/to/save/images
+```
+
+### Class Mapping
+
+Colormap class mappings:
+![alt text](images/color_legend.png)
+
+Mask idx to class mappings:
+
+```yaml
+0: road
+1: sidewalk
+2: building
+3: wall
+4: fence
+5: pole
+6: traffic light
+7: traffic sign
+8: vegetation
+9: terrain
+10: sky
+11: person
+12: rider
+13: car
+14: truck
+15: bus
+16: train
+17: motorcycle
+18: bicycle
+```

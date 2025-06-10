@@ -13,5 +13,11 @@ pyyaml
 matplotlib
 tqdm
 argparse
-pytest
-numpy
+torchmetrics
+pillow
+fastapi
+uvicorn
+python-multipart
+opencv-python 
+gdown
+
