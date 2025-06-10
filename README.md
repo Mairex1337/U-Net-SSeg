@@ -72,9 +72,6 @@ Request via GUI:
 - Click **"Execute"** to run inference.
 - Download the `output.json` file from the response.
 
-Here's a clearer and more coherent version of your instructions:
-
----
 
 ### Running Streamlit
 
@@ -95,7 +92,6 @@ Here's a clearer and more coherent version of your instructions:
    If it doesn't open automatically, you can access it manually by navigating to:
    [http://localhost:8501](http://localhost:8501)
 
----
 
 ### Converting the Output JSON Back to Images
 
