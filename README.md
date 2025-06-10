@@ -82,6 +82,28 @@ Close the api:
    docker-compose down
    ```
 
+### Running Streamlit
+
+1. **Start the API**
+   Ensure that the API is running first, as the Streamlit app relies on it to make predictions.
+
+2. **Configure Environment Variables**
+   First create a new file in the root directory called `.env` and then
+   set the `API_BASE_URL` and `SESSION_STATE_FILE` in your `.env` file.
+   You can use the provided `.env.sample` as a reference, simply copy the values into your own `.env` file.
+
+3. **Launch the Streamlit App**
+   To run the Streamlit application locally, use the following command:
+
+   ```bash
+   streamlit run streamlit/app.py
+   ```
+
+   This should automatically open a new browser window displaying the application.
+   If it doesn't open automatically, you can access it manually by navigating to:
+   [http://localhost:8501](http://localhost:8501)
+
+
 ### Converting the Output JSON Back to Images
 
 To view the predictions, convert the `output.json` back to images using:
