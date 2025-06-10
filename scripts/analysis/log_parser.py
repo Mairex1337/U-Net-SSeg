@@ -3,7 +3,13 @@ from pathlib import Path
 import pandas as pd
 
 def parse_training_log(log_file):
-    """Parse training log file and extract metrics"""
+    """
+    Parse training log file to extract training and validation metrics.
+    Args:
+        log_file (str): Path to the training log file.
+    Returns:
+        pd.DataFrame: DataFrame containing training and validation metrics.
+    """
     pattern = re.compile(
         r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - "
         r"Epoch (?P<epoch>\d+) - Train loss: (?P<train_loss>\d+\.\d+) - "
@@ -23,7 +29,6 @@ def parse_training_log(log_file):
     
     with open(log_file, 'r') as f:
         for line in f:
-            # Parse training metrics
             train_match = pattern.search(line)
             if train_match:
                 current_epoch = int(train_match.group('epoch'))
@@ -36,7 +41,6 @@ def parse_training_log(log_file):
                 })
                 continue
                 
-            # Parse validation metrics
             val_match = val_pattern.search(line)
             if val_match:
                 metrics.append({
@@ -47,7 +51,6 @@ def parse_training_log(log_file):
                 })
                 continue
                 
-            # Parse learning rate
             lr_match = lr_pattern.search(line)
             if lr_match:
                 current_lr = lr_match.group('lr')
@@ -59,8 +62,13 @@ from pathlib import Path
 import pandas as pd
 
 def parse_evaluation_log(log_file):
-    """Parse evaluation log file with more robust pattern matching"""
-    # Updated patterns to match your exact format
+    """
+    Parse evaluation log file to extract global and per-class metrics.
+    Args:
+        log_file (str): Path to the evaluation log file.
+    Returns:
+        tuple: Global metrics as a dictionary and per-class metrics as a DataFrame.
+    """
     global_pattern = re.compile(
         r"Evaluation Results:\s*\n"
         r".*Pixel Accuracy:\s+(?P<pixel_acc>\d+\.\d+)\s*\n"
@@ -80,7 +88,6 @@ def parse_evaluation_log(log_file):
     with open(log_file, 'r') as f:
         content = f.read()
         
-        # Parse global metrics
         global_match = global_pattern.search(content)
         if not global_match:
             print(f"Warning: Could not parse global metrics in {log_file}")
@@ -93,12 +100,8 @@ def parse_evaluation_log(log_file):
             'mean_dice': float(global_match.group('mean_dice'))
         }
         
-        # Parse class metrics
         class_section = content.split("Per-Class Evaluation Metrics:")[-1]
-        print("\n=== Raw class section ===")
-        print(class_section)
         class_lines = [line.strip() for line in class_section.split('\n')]
-        print(f"Found {len(class_lines)} per-class metric lines")
 
         class_data = []
         for line in class_lines:
@@ -112,30 +115,22 @@ def parse_evaluation_log(log_file):
                     'recall': float(match.group('recall'))
                 })
         
-        if not class_data:
-            print(f"Warning: Could not parse class metrics in {log_file}")
-            
         return global_metrics, pd.DataFrame(class_data)
 
 def process_run_directory(run_dir):
-    """Process directory with better error handling"""
+    """
+    Process a run directory to extract training and evaluation metrics.
+    Args:
+        run_dir (str): Path to the run directory.
+    Returns:
+        tuple: DataFrames for training metrics, global evaluation metrics, and per-class metrics.
+    """
     run_dir = Path(run_dir)
-    print(f"\nProcessing: {run_dir}")
     
     train_log = next(run_dir.glob('training.log'), None)
     train_df = parse_training_log(train_log) if train_log else pd.DataFrame()
 
-    # Find evaluation log
     eval_log = next(run_dir.glob('eval.log'), None)
-    
-    if not eval_log:
-        print("No eval.log found")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    
-    # Parse evaluation log
     global_metrics, class_df = parse_evaluation_log(eval_log)
     
-    if not global_metrics:
-        print("Failed to parse evaluation metrics")
-        
     return train_df, pd.DataFrame([global_metrics]), class_df

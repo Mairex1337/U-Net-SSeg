@@ -4,8 +4,15 @@ from log_parser import process_run_directory
 import os
 import numpy as np
 import pandas as pd
+import sys
 
 def plot_training_metrics(train_df, output_dir):
+    """
+    Plot training metrics from the training DataFrame.
+    Args:
+        train_df (pd.DataFrame): DataFrame containing training metrics.
+        output_dir (str): Directory to save the plots.
+    """
     
     plt.figure(figsize=(10,6))
     sns.lineplot(data=train_df[train_df['type'] == 'train'], x='epoch', y='train_loss', label='Train')
@@ -40,7 +47,14 @@ def plot_training_metrics(train_df, output_dir):
         plt.close()
 
 def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
-
+    """
+    Plot evaluation metrics from the evaluation DataFrame and class metrics DataFrame.
+    Args:
+        eval_df (pd.DataFrame): DataFrame containing evaluation metrics.
+        class_df (pd.DataFrame): DataFrame containing per-class metrics.
+        train_df (pd.DataFrame): DataFrame containing training metrics.
+        output_dir (str): Directory to save the plots.
+    """
     plt.figure(figsize=(12, 6))
     global_metrics = eval_df[['pixel_accuracy', 'mean_accuracy', 'mean_iou', 'mean_dice']].mean().to_frame().reset_index()
     global_metrics.columns = ['Metric', 'Value']
@@ -122,6 +136,14 @@ def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
     plt.close()
 
 def model_comparison_plot(metrics_baseline, metrics_model, output_path):
+    """
+    Create a bar plot comparing model metrics against baseline metrics.
+    Args:
+        metrics_baseline (list): List of baseline metrics [pixel_acc, mean_acc, mean_iou, mean_dice].
+        metrics_model (list): List of model metrics [pixel_acc, mean_acc, mean_iou, mean_dice].
+        output_path (str): Path to save the comparison plot.
+    """
+    plt.figure(figsize=(10, 6))
     df = pd.DataFrame({
         'Baseline': metrics_baseline,
         'Model': metrics_model
@@ -137,54 +159,34 @@ def model_comparison_plot(metrics_baseline, metrics_model, output_path):
     plt.close()
 
 def visualize_run(run_dir):
+    """
+    Visualize training and evaluation metrics from a run directory.
+    Args:
+        run_dir (str): Path to the run directory.
+    """
     output_dir = os.path.join(run_dir, 'visualizations')
     os.makedirs(output_dir, exist_ok=True)
     
     train_df, eval_df, class_df = process_run_directory(run_dir)
     
-    # DEBUG: Print DataFrame status
-    print("\n=== DataFrame Status ===")
-    print(f"Training DF: {len(train_df)} rows | Columns: {list(train_df.columns)}")
-    print(f"Evaluation DF: {len(eval_df)} rows | Columns: {list(eval_df.columns) if not eval_df.empty else 'EMPTY'}")
-    print(f"Class DF: {len(class_df)} rows | Columns: {list(class_df.columns) if not class_df.empty else 'EMPTY'}")
-    
     if not train_df.empty:
         plot_training_metrics(train_df, output_dir)
     
-    # Modified condition with more detailed checks
     eval_condition = not eval_df.empty and not class_df.empty
-    print(f"\nEvaluation plots condition: {eval_condition}")
     
     if eval_condition:
         plot_evaluation_metrics(eval_df, class_df, train_df, output_dir)
-        print(f"Generated evaluation visualizations in {output_dir}")
-    else:
-        print("Skipping evaluation plots because:")
-        if eval_df.empty:
-            print("- eval_df is empty")
-        if class_df.empty:
-            print("- class_df is empty")
+
 
 if __name__ == "__main__":
-    import sys
-    
-    # Check command line argument
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 2 or not os.path.exists(sys.argv[1]):
         print("Usage: python visualize_metrics.py <run_directory>")
         sys.exit(1)
     
     run_dir = sys.argv[1]
-    
-    # Verify directory exists
-    if not os.path.exists(run_dir):
-        print(f"Error: Directory does not exist - {run_dir}")
-        sys.exit(1)
-    
-    # Run visualization with error handling
+
     try:
-        print(f"Starting visualization for: {run_dir}")
         visualize_run(run_dir)
-        print("Visualization completed successfully")
     except Exception as e:
-        print(f"Error during visualization: {str(e)}")
+        print(f"Error during visualization: {e}")
         sys.exit(1)
