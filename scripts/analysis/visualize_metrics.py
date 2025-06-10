@@ -3,6 +3,7 @@ import seaborn as sns
 from log_parser import process_run_directory
 import os
 import numpy as np
+import pandas as pd
 
 def plot_training_metrics(train_df, output_dir):
     
@@ -118,6 +119,21 @@ def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'train_val_loss_comparison.png'))
+    plt.close()
+
+def model_comparison_plot(metrics_baseline, metrics_model, output_path):
+    df = pd.DataFrame({
+        'Baseline': metrics_baseline,
+        'Model': metrics_model
+    })
+    df = df.T
+    df.columns = ['Pixel Acc', 'Mean Acc', 'Mean IoU', 'Mean Dice']
+    df.plot(kind='bar', rot=0, figsize=(8, 6))
+    plt.title("Model vs Baseline Comparison")
+    plt.ylabel("Score")
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig(output_path)
     plt.close()
 
 def visualize_run(run_dir):
