@@ -21,7 +21,6 @@ def run_hyperparameter_tuning(
     if world_size == 0:
         raise RuntimeError("No GPUs found.")
     cfg = read_config()
-    cfg['hyperparams'][model_name]['batch_size'] = 2
     cfg['hyperparams'][model_name]['epochs'] = 50
     resize = cfg['transforms']['resize']
     cfg['transforms']['resize'] = [256, 448]
