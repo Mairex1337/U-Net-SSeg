@@ -48,21 +48,17 @@ As per the assignment instructions, the API expects a `.json` file containing ba
     --file-name optional_filename.json
   ```
 
-### Running the API
-Download docker-desktop for your os via:
-https://docs.docker.com/desktop/
+### Running the api without docker
 
 Launch the API server:
    ```bash
-   docker-compose up -d
+   python -m api.main
    ```
-
-Navigate to http://127.0.0.1:80 to open the api in your browser
 
 Request via curl:
    ```bash
       curl -X POST \
-      http://127.0.0.1:80/predict/ \
+      http://127.0.0.1:8000/predict/ \
       -H "accept: application/json" \
       -H "Content-Type: multipart/form-data" \
       -F "file=@your_images.json;type=application/json"
@@ -71,16 +67,11 @@ Request via curl:
 - This request will create an output.json file in the root of the repository, see below for instructions on how to convert it to images.
 
 Request via GUI:
-- Open the `/docs` page in your browser (`http://127.0.0.1:80`).
+- Open the `/docs` page in your browser (`http://127.0.0.1:8000`).
 - Go to the `/predict/` endpoint and click **"Try it out"**.
 - Upload `api_images.json` or your own converted file.
 - Click **"Execute"** to run inference.
 - Download the `output.json` file from the response.
-
-Close the api:
-   ```bash
-   docker-compose down
-   ```
 
 ### Running Streamlit
 
@@ -103,6 +94,25 @@ Close the api:
    If it doesn't open automatically, you can access it manually by navigating to:
    [http://localhost:8501](http://localhost:8501)
 
+### run the api and streamlit app with docker
+
+Make sure that you have docker container memory, 7/8 gb should be enough.
+You can edit this in docker desktop setting -> resources
+
+Download docker-desktop for your os via:
+https://docs.docker.com/desktop/
+
+Launch the API server:
+   ```bash
+   docker-compose up -d
+   ```
+
+Navigate to http://127.0.0.1:8501 to open the api in your browser
+
+Close the api:
+   ```bash
+   docker-compose down
+   ```
 
 ### Converting the Output JSON Back to Images
 

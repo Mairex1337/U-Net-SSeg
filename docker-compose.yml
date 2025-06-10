@@ -2,9 +2,10 @@ services:
   fastapi-app:
     build: .
     ports:
-      - "80:80"
-    deploy:
-      resources:
-        limits:
-          memory: 8G    
-    restart: always
+      - "8000:8000" 
+  streamlit_app:
+      build: .
+      ports:
+        - "8501:8501"
+      env_file:
+        - .env
