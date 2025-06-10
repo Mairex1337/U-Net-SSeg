@@ -70,7 +70,7 @@ def parse_evaluation_log(log_file):
     )
     
     class_pattern = re.compile(
-        r"(?P<class>\w+)\s+"
+        r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - (?P<class>[\w\s]+?)\s+"
         r"(?P<iou>\d+\.\d+)\s+"
         r"(?P<dice>\d+\.\d+)\s+"
         r"(?P<precision>\d+\.\d+)\s+"
@@ -95,9 +95,11 @@ def parse_evaluation_log(log_file):
         
         # Parse class metrics
         class_section = content.split("Per-Class Evaluation Metrics:")[-1]
-        class_lines = [line.strip() for line in class_section.split('\n') 
-                      if re.match(r"^\w+\s+\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+", line)]
-        
+        print("\n=== Raw class section ===")
+        print(class_section)
+        class_lines = [line.strip() for line in class_section.split('\n')]
+        print(f"Found {len(class_lines)} per-class metric lines")
+
         class_data = []
         for line in class_lines:
             match = class_pattern.search(line)
