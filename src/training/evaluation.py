@@ -85,6 +85,51 @@ class DiceLoss(nn.Module):
         return 1 - dice
 
 
+class OHEMLoss(nn.Module):
+    """
+    Computes CEL only for the top-k percent hardest pixels.
+
+    Args:
+        num_classes (int): number of classes
+        ignor_index (int): index of pixels to ignore
+        top_k_percent (float): float in (0,1], e.g. 0.25 means top 25% hardest pixels
+    """
+    def __init__(
+            self,
+            num_classes: int,
+            ignore_index: int = 255,
+            top_k_percent: float = 0.25
+    ) -> None:
+        super().__init__()
+        self.num_classes = num_classes
+        self.ignore_index = ignore_index
+        self.topk = top_k_percent
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor):
+        """
+        Args:
+            logits (torch.Tensor): B, C, H, W raw outputs
+            targets (torch.Tensor): B, H, W ground truth class indices
+
+        Returns:
+            loss: scalar loss over top-k hardest pixels
+        """
+        C = self.num_classes
+        logits = logits.permute(0, 2, 3, 1).reshape(-1, C)  # (B*H*W, C)
+        targets = targets.view(-1)  # (B*H*W)
+
+        valid_mask = (targets != self.ignore_index)
+        logits = logits[valid_mask]
+        targets = targets[valid_mask]
+
+        pixel_loss = F.cross_entropy(logits, targets, reduction='none')  # (N,)
+
+        k = int(self.topk * pixel_loss.numel())
+        topk_loss, _ = torch.topk(pixel_loss, k, sorted=False)
+
+        return topk_loss.mean()
+
+
 class EarlyStopping:
     """
     Early stops training if the monitored metric(s) don't improve after a given patience.
