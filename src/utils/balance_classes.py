@@ -3,31 +3,23 @@ from PIL import Image
 
 from src.utils import read_config
 
-def transform_classes(mask: Image) -> Image:
+
+def transform_classes(mask: Image.Image) -> Image.Image:
     """
-    Transform class labels in a masks according to configuration.
+    Transform class labels in a segmentation mask using oldid_newid mapping.
 
     Args:
-        mask (Image): Mask for segmentation task.
+        mask (Image): Input mask with original label IDs.
 
     Returns:
-        Image: Mask with transformed class labels, where specified classes 
-        are combined or excluded based on configuration.
+        Image: Transformed mask with new label IDs.
     """
     cfg = read_config()
-    mask = np.array(mask)
+    old_new = cfg['oldid_newid']
 
-    classes_to_combine = cfg['classes_to_transform']['classes_to_combine']
-    classes_to_exclude = cfg['classes_to_transform']['classes_to_exclude']
-    
-    for combine_items in classes_to_combine.items():
-        for cls in combine_items[1]:
-            mask[mask == cls] = combine_items[0]
-    
-    exclude_class_id = 255
-    for cls in classes_to_exclude:
-        mask[mask == cls] = exclude_class_id
-        
-    mask = Image.fromarray(mask)
+    mask_np = np.array(mask)
 
-    return mask
+    for old_id, new_id in old_new.items():
+        mask_np[mask_np == int(old_id)] = int(new_id)
+
+    return Image.fromarray(mask_np)

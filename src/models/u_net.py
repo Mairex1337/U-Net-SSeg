@@ -21,6 +21,7 @@ class ConvolutionBlock(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels=3, num_classes=19, base_channels=64):
         super().__init__()
+        self.num_classes = num_classes
         self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.down1 = ConvolutionBlock(in_channels, base_channels)
@@ -69,7 +70,7 @@ class UNet(nn.Module):
         u1 = self.conv1(u1)
 
         out = self.outc(u1)
-        if out.shape[1] != 19:
-            raise ValueError(f"Output shape mismatch: expected 19 classes, got {out.shape[1]} classes.")
+        if out.shape[1] != self.num_classes:
+            raise ValueError(f"Output shape mismatch: expected {self.num_classes} classes, got {out.shape[1]} classes.")
 
         return out

@@ -19,9 +19,9 @@ def run_hyperparameter_tuning(
 
     world_size = torch.cuda.device_count()
     if world_size == 0:
-        raise RuntimeError("No GPUs found. DDP training requires at least one GPU.")
+        raise RuntimeError("No GPUs found.")
     cfg = read_config()
-    cfg['hyperparams'][model_name]['batch_size'] = 16
+    cfg['hyperparams'][model_name]['batch_size'] = 2
     cfg['hyperparams'][model_name]['epochs'] = 50
     cfg['transforms']['resize'] = [256, 448]
     cfg['runs'][model_name] = str(1)
@@ -105,7 +105,7 @@ def run_hyperparameter_tuning(
     return best_hyperparams
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run DDP hyperparameter tuning.")
+    parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['baseline', 'unet'], required=True)
     parser.add_argument(
         '--loss',

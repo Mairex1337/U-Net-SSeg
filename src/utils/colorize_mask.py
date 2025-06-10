@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+
 from src.utils import read_config
 
 
@@ -20,6 +21,7 @@ def convert_grayscale_to_colored_mask(
     """
     cfg = read_config()
     colormap = cfg['class_distribution']['color_map']
+    old_new = cfg['oldid_newid']
 
     gray_mask = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
