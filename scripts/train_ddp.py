@@ -123,19 +123,18 @@ def train_ddp(
             train_loader.sampler.set_epoch(epoch)
         trainer.train_epoch(epoch)
         results = trainer.validate_epoch(epoch)
-        val_loss = results['loss']
+        metric_score = early_stopping.get_metric_score(results)
         if rank == 0:
             trainer.save_checkpoint(epoch, raw_model)
-            if val_loss < trainer.best_val_loss:
+            if metric_score < trainer.best_metric:
                 trainer.best_checkpoint = epoch
-                trainer.best_val_loss = val_loss
-        stop_flag = early_stopping(results)
+                trainer.best_metric = metric_score
 
-        if stop_flag:
+        if early_stopping(metric_score):
             if rank == 0 :
                 logger.info(f"Early stopping training at epoch {epoch}")
             break
-        dist.barrier()
+    dist.barrier()
 
     if rank == 0:
         trainer.determine_best_checkpoint()

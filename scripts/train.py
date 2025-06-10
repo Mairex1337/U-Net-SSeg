@@ -6,7 +6,7 @@ import torch
 import yaml
 
 from src.data import get_dataloader
-from src.training import Trainer, get_weighted_criterion
+from src.training import EarlyStopping, Trainer, get_weighted_criterion
 from src.utils import (SegmentationMetrics, get_device, get_logger, get_model,
                        get_run_dir, read_config, write_config)
 
@@ -57,6 +57,8 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
         pct_start=0.15,
     )
 
+    early_stopping = EarlyStopping(patience=15)
+
     criterion = get_weighted_criterion(cfg, device=device)
 
     trainer = Trainer(
@@ -76,11 +78,16 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
     for epoch in range(1, hyperparams['epochs'] + 1):
         trainer.train_epoch(epoch)
         results = trainer.validate_epoch(epoch)
-        val_loss = results['loss']
+
+        metric_score = early_stopping.get_metric_score(results)
         trainer.save_checkpoint(epoch)
-        if val_loss < trainer.best_val_loss:
+        if metric_score < trainer.best_metric:
             trainer.best_checkpoint = epoch
-            trainer.best_val_loss = val_loss
+            trainer.best_metric = metric_score
+
+        if early_stopping(metric_score):
+            logger.info(f"Early stopping training at epoch {epoch}")
+            break
 
     trainer.determine_best_checkpoint()
 

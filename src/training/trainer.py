@@ -55,7 +55,7 @@ class Trainer:
         self.world_size = world_size
         self.rank = rank
         self.ddp = world_size > 1
-        self.best_val_loss = float("inf")
+        self.best_metric = float("inf")
         self.best_checkpoint = -1
         self._bar_format = "{l_bar}{bar} | {n_fmt}/{total_fmt} [{rate_fmt} {postfix}]"
         self._train_samples = len(self.train_loader.dataset)
