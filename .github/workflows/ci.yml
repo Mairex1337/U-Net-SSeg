@@ -26,4 +26,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run all tests
-        run: pytest --disable-warnings
+        run: DISABLE_WORKERS=1 pytest --disable-warnings
