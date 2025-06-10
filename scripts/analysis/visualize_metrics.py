@@ -80,12 +80,12 @@ def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
     class_df_sorted = class_df.sort_values('iou', ascending=False)
     
     plt.subplot(2, 1, 1)
-    sns.barplot(data=class_df_sorted.head(10), x='iou', y='class', palette='viridis')
+    sns.barplot(data=class_df_sorted.head(10), x='iou', y='class', hue='class', palette='viridis', legend=False)
     plt.title('Top 10 Classes by IoU Score')
     plt.xlim(0, 1)
     
     plt.subplot(2, 1, 2)
-    sns.barplot(data=class_df_sorted.tail(10), x='iou', y='class', palette='magma')
+    sns.barplot(data=class_df_sorted.tail(10), x='iou', y='class', hue='class', palette='magma', legend=False)
     plt.title('Bottom 10 Classes by IoU Score')
     plt.xlim(0, 1)
     
