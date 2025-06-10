@@ -2,10 +2,13 @@ services:
   fastapi-app:
     build: .
     ports:
-      - "8000:8000" 
+      - "8000:8000"
+    image: my-fastapi:latest
+
   streamlit_app:
       build: .
       ports:
         - "8501:8501"
       env_file:
         - .env
+      image: my-streamlit:latest
