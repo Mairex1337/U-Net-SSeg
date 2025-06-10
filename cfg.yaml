@@ -71,6 +71,10 @@ hyperparams:
     input_dim: 3
     lr: 0.001
     num_classes: 14
+    ignore_index: 255
+    topk_percent: 0.25
+    cle_weight: 0.5
+    dice_weight: 0.5
     weight_decay: 0.0001
   unet:
     base_channels: 64
@@ -79,6 +83,10 @@ hyperparams:
     in_channels: 3
     lr: 0.001
     num_classes: 14
+    ignore_index: 255
+    topk_percent: 0.25
+    cle_weight: 0.5
+    dice_weight: 0.5
     weight_decay: 0.0001
 original_class_distribution:
   class_frequencies:

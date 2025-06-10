@@ -1,6 +1,50 @@
+from typing import Literal
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+
+def get_loss_function(
+        loss_name: Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice'],
+        cfg: dict,
+        device: str,
+) -> nn.Module:
+    """
+    Returns the specified loss criterion based on its name and configuration.
+
+    Args:
+        loss_name (str): The name of the loss function to retrieve.
+                         Expected values: "weighted_cle", "dice", "mixed_cle_dice", "OHEMLoss".
+        cfg (dict): A dictionary containing configuration parameters for the loss.
+        device (str): The device ("cpu" or "cuda") where tensors should be placed.
+
+    Returns:
+        nn.Module: An instance of the requested loss criterion.
+
+    Raises:
+        AssertionError: If an unknown loss_name is provided.
+    """
+    assert loss_name in ['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice']
+    params = cfg['hyperparams']['unet']
+    num_classes = params['num_classes']
+    ignore_index = params['ignore_index']
+    if loss_name == 'weighted_cle':
+        return get_weighted_criterion(cfg, device)
+    
+    if loss_name == 'OHEMLoss':
+        return OHEMLoss(num_classes, ignore_index, params['topk_percent'])
+
+    if loss_name == 'mixed_cle_dice':
+        return MixedDiceCle(
+            num_classes,
+            params['cle_weight'],
+            params['dice_weight'],
+            ignore_index,
+        )
+    
+    if loss_name == 'dice':
+        return DiceLoss(num_classes, ignore_index)
 
 
 def get_weighted_criterion(cfg: dict, device: str) -> torch.nn.CrossEntropyLoss:
@@ -27,7 +71,6 @@ def get_weighted_criterion(cfg: dict, device: str) -> torch.nn.CrossEntropyLoss:
     weights_sqrt = torch.sqrt(weights_by_id)
     normalized_weights = weights_sqrt / weights_sqrt.sum()
     return torch.nn.CrossEntropyLoss(weight=normalized_weights, ignore_index=255)
-
 
 
 class DiceLoss(nn.Module):
