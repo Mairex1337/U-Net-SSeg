@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 
-from src.utils import read_config
+from src.utils.path import read_config
 
 
 def transform_classes(mask: Image.Image) -> Image.Image:

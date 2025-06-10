@@ -149,7 +149,7 @@ class MixedDiceCle(nn.Module):
         ) -> None:
         super().__init__()
         assert 0.0 <= cle_weight <= 1.0 and 0.0 <= dice_weight <= 1.0
-        assert cle_weight + dice_weight == 1.0
+        assert abs(cle_weight + dice_weight - 1.0) < 1e-6
         self.cle = nn.CrossEntropyLoss(ignore_index=ignore_index)
         self.dice = DiceLoss(num_classes, ignore_index, eps)
         self.cle_weight = cle_weight

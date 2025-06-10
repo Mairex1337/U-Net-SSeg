@@ -11,8 +11,9 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
 from src.training import EarlyStopping, Trainer, get_loss_function
-from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
-                       read_config, setup_ddp_process, write_config)
+from src.utils import (SegmentationMetrics, get_best_loss, get_logger,
+                       get_model, get_run_dir, read_config, setup_ddp_process,
+                       write_config)
 
 
 def train_ddp(
@@ -85,7 +86,7 @@ def train_ddp(
 
     fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
     if rank == 0:
-        logger.info(f"Starting training with model: {model_name}\nUsing fused optimizer: {fused_available}")
+        logger.info(f"Starting training with model: {model_name}. Using fused optimizer: {fused_available}")
         logger.info(f"Using run_dir: {run_dir}, using checkpoint dir: {chkpt_dir}")
 
     optimizer = torch.optim.AdamW(
@@ -103,9 +104,17 @@ def train_ddp(
         pct_start=0.15,
     )
 
-    early_stopping = EarlyStopping(patience=15)
+    early_stopping = EarlyStopping(patience=10)
+
+    if loss_name == 'best':
+        run_id = int(cfg['runs'][model_name])
+        loss_name = get_best_loss(run_dir, run_id - 3)
+        if rank == 0:
+            logger.info("Loss was autoselected via get_best_loss()")
 
     criterion = get_loss_function(loss_name, cfg, device=rank)
+
+    logger.info(f"Loss used: {criterion.__class__.__name__}")
 
     trainer = Trainer(
         model=model,
@@ -131,7 +140,7 @@ def train_ddp(
         metric_score = early_stopping.get_metric_score(results)
         if rank == 0 and not tuning:
             trainer.save_checkpoint(epoch, raw_model)
-        if metric_score < trainer.best_metric:
+        if metric_score > trainer.best_metric:
             trainer.best_checkpoint = epoch
             trainer.best_metric = metric_score
 
@@ -158,7 +167,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--loss',
         type=str,
-        choices=['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice'],
+        choices=['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice', 'best'],
         required=True
     )
     args = parser.parse_args()

@@ -23,6 +23,7 @@ def run_hyperparameter_tuning(
     cfg = read_config()
     cfg['hyperparams'][model_name]['batch_size'] = 2
     cfg['hyperparams'][model_name]['epochs'] = 50
+    resize = cfg['transforms']['resize']
     cfg['transforms']['resize'] = [256, 448]
     cfg['runs'][model_name] = str(1)
 
@@ -98,6 +99,7 @@ def run_hyperparameter_tuning(
     cfg['hyperparams'][model_name]['lr'] = best_hyperparams['lr']
     cfg['hyperparams'][model_name]['weight_decay'] = best_hyperparams['weight_decay']
     cfg['runs'][model_name] = str(1)
+    cfg['transforms']['resize'] = resize
     write_config(cfg)
 
     logger.info(f"Wrote hyperparams into cfg")

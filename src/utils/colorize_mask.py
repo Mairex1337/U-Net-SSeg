@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from src.utils import read_config
+from src.utils.path import read_config
 
 
 def convert_grayscale_to_colored_mask(
