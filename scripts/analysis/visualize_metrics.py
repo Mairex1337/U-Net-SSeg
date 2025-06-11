@@ -100,11 +100,10 @@ def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
                    s=100, alpha=0.7, palette='tab20')
     
     for line in range(class_df.shape[0]):
-        if class_df['iou'].iloc[line] < 0.2 or class_df['iou'].iloc[line] > 0.8:
-            plt.text(class_df['recall'].iloc[line]+0.01, 
-                    class_df['precision'].iloc[line],
-                    class_df['class'].iloc[line],
-                    horizontalalignment='left')
+        plt.text(class_df['recall'].iloc[line]+0.01, 
+                class_df['precision'].iloc[line],
+                class_df['class'].iloc[line],
+                horizontalalignment='left')
     
     plt.title('Precision-Recall Tradeoff by Class')
     plt.xlim(0, 1)
@@ -140,8 +139,7 @@ def model_comparison_plot(combined_df, output_path):
     """
     Create a bar plot comparing model metrics against baseline metrics.
     Args:
-        metrics_baseline (list): List of baseline metrics [pixel_acc, mean_acc, mean_iou, mean_dice].
-        metrics_model (list): List of model metrics [pixel_acc, mean_acc, mean_iou, mean_dice].
+        combined_df (pd.DataFrame): DataFrame containing combined metrics for all runs.
         output_path (str): Path to save the comparison plot.
     """
     plt.figure(figsize=(10, 6))
@@ -159,6 +157,11 @@ def model_comparison_plot(combined_df, output_path):
     plt.close()
 
 def plot_dice_with_sem(sem_df):
+    """
+    Plot the mean Dice score with SEM for each run.
+    Args:
+        sem_df (pd.DataFrame): DataFrame containing mean Dice scores and SEM.
+    """
     plt.figure(figsize=(8, 5))
     plt.bar(
         sem_df['run_name'],
@@ -248,17 +251,3 @@ if __name__ == "__main__":
     else:
         print("Usage: python visualize_metrics.py <run_directory> OR python visualize_metrics.py --compare <run_dir1> <run_dir2> ...")
         sys.exit(1)
-            
-
-
-    """if len(sys.argv) != 2 or not os.path.exists(sys.argv[1]):
-        print("Usage: python visualize_metrics.py <run_directory>")
-        sys.exit(1)
-    
-    run_dir = sys.argv[1]
-
-    try:
-        visualize_run(run_dir)
-    except Exception as e:
-        print(f"Error during visualization: {e}")
-        sys.exit(1)"""
