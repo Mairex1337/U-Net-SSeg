@@ -76,6 +76,8 @@ def get_dataloader(
         sampler = None
 
     num_workers = min(16, os.cpu_count() // world_size)
+    if os.getenv("DISABLE_WORKERS") == "1":
+        num_workers = 0
     dataloader = DataLoader(
         ds,
         batch_size=batch_size,

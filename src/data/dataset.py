@@ -13,7 +13,7 @@ class SegmentationDataset(data.Dataset):
     """
     A PyTorch Dataset for semantic segmentation tasks.
 
-    Loads images and masks from, applies transforms, 
+    Loads images and masks from, applies transforms,
     and returns them as tensors.
 
     Args:
@@ -31,7 +31,7 @@ class SegmentationDataset(data.Dataset):
             img_dir: str,
             mask_dir: str,
             transforms: Compose,
-            debug: bool = False 
+            debug: bool = False
     ) -> None:
         self.transforms = transforms
         self.img_dir = img_dir
@@ -62,7 +62,7 @@ class SegmentationDataset(data.Dataset):
         img = Image.open(img_path)
         mask = Image.open(mask_path)
         mask = transform_classes(mask)
-        
+
         if self.transforms:
             img_t, mask_t = self.transforms(img, mask)
         if self.debug:
