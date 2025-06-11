@@ -134,3 +134,21 @@ def process_run_directory(run_dir):
     global_metrics, class_df = parse_evaluation_log(eval_log)
     
     return train_df, pd.DataFrame([global_metrics]), class_df
+
+def collect_eval_results(run_dirs):
+    """
+    Collect global evaluation results from multiple run directories.
+    Args:
+        run_dirs (list of str): List of run directory paths.
+    Returns:
+        pd.DataFrame: Combined DataFrame with global metrics for all runs.
+    """
+    summary = []
+
+    for run_dir in run_dirs:
+        _, global_df, _ = process_run_directory(run_dir)
+        if not global_df.empty:
+            global_df['run_name'] = Path(run_dir).name  # Optional: or use full path
+            summary.append(global_df)
+
+    return pd.concat(summary, ignore_index=True)
