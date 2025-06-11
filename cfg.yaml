@@ -145,8 +145,8 @@ runs:
   unet: '1'
 transforms:
   flip: 0.5
-  max_scale: 1.0
-  min_scale: 0.35
+  max_scale: 1.5
+  min_scale: 0.5
   normalize:
     mean:
     - 0.3698435425758362
