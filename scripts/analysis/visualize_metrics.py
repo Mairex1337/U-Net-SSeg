@@ -158,6 +158,22 @@ def model_comparison_plot(metrics_baseline, metrics_model, output_path):
     plt.savefig(output_path)
     plt.close()
 
+def plot_dice_with_sem(sem_df):
+    plt.figure(figsize=(8, 5))
+    plt.bar(
+        sem_df['run_name'],
+        sem_df['mean_dice_mean'],
+        yerr=sem_df['mean_dice_sem'],
+        capsize=5,
+        color=['skyblue', 'lightgreen']
+    )
+    plt.title("Mean Dice Score with SEM")
+    plt.ylabel("Mean Dice Score")
+    plt.xlabel("Run")
+    plt.tight_layout()
+    plt.savefig("outputs/eval_dice_sem.png")
+    plt.close()
+
 def visualize_run(run_dir):
     """
     Visualize training and evaluation metrics from a run directory.
@@ -208,6 +224,7 @@ if __name__ == "__main__":
                 sys.exit(1)
             sem_df = compute_sem(eval_dfs)
             sem_df.to_csv(os.path.join('outputs/sem_results.csv'), index=False)
+            plot_dice_with_sem(sem_df)
         except Exception as e:
             print(f"Error during comparison: {e}")
             sys.exit(1)
