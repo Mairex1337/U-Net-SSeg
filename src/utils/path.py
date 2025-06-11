@@ -128,4 +128,4 @@ def get_best_loss(
             best_loss = loss_map[idx]
     
     assert best_loss != ''
-    print(best_loss)
+    return best_loss

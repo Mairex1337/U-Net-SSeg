@@ -107,8 +107,7 @@ def train_ddp(
     early_stopping = EarlyStopping(patience=10)
 
     if loss_name == 'best':
-        run_id = int(cfg['runs'][model_name])
-        loss_name = get_best_loss(run_dir, run_id - 3)
+        loss_name = get_best_loss(run_dir, 1)
         if rank == 0:
             logger.info("Loss was autoselected via get_best_loss()")
 
