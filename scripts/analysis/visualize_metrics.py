@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from log_parser import process_run_directory
+from log_parser import process_run_directory, collect_eval_results, compute_sem
 import os
 import numpy as np
 import pandas as pd
@@ -179,7 +179,46 @@ def visualize_run(run_dir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2 or not os.path.exists(sys.argv[1]):
+    import sys
+
+    args = sys.argv[1:]
+
+    if len(args) == 1:
+        run_dir = args[0]
+        if not os.path.exists(run_dir):
+            print(f"Run directory '{run_dir}' does not exist.")
+            sys.exit(1)
+        try:
+            visualize_run(run_dir)
+        except Exception as e:
+            print(f"Error during visualization: {e}")
+            sys.exit(1)
+    
+    elif len(args) > 1 and args[0] == '--compare':
+        run_dirs = args[1:]
+        for path in run_dirs:
+            if not os.path.exists(path):
+                print(f"Run directory '{path}' does not exist.")
+                sys.exit(1)
+        
+        try:
+            eval_dfs = collect_eval_results(run_dirs)
+            if eval_dfs.empty:
+                print("No evaluation metrics found in the provided run directories.")
+                sys.exit(1)
+            sem_df = compute_sem(eval_dfs)
+            sem_df.to_csv(os.path.join('outputs/sem_results.csv'), index=False)
+        except Exception as e:
+            print(f"Error during comparison: {e}")
+            sys.exit(1)
+
+    else:
+        print("Usage: python visualize_metrics.py <run_directory> OR python visualize_metrics.py --compare <run_dir1> <run_dir2> ...")
+        sys.exit(1)
+            
+
+
+    """if len(sys.argv) != 2 or not os.path.exists(sys.argv[1]):
         print("Usage: python visualize_metrics.py <run_directory>")
         sys.exit(1)
     
@@ -189,4 +228,4 @@ if __name__ == "__main__":
         visualize_run(run_dir)
     except Exception as e:
         print(f"Error during visualization: {e}")
-        sys.exit(1)
+        sys.exit(1)"""

@@ -152,3 +152,18 @@ def collect_eval_results(run_dirs):
             summary.append(global_df)
 
     return pd.concat(summary, ignore_index=True)
+
+def compute_sem(eval_summary_df):
+    """
+    Compute mean and SEM for each run group.
+    Args:
+        eval_summary_df (pd.DataFrame): DataFrame with all global eval metrics.
+    Returns:
+        pd.DataFrame: Aggregated DataFrame with mean and SEM values.
+    """
+    sem_df = eval_summary_df.groupby("run_name").agg(['mean', 'sem'])
+    sem_df.columns = ['_'.join(col).strip() for col in sem_df.columns.values]
+    sem_df.reset_index(inplace=True)
+    return sem_df
+
+"""miou"""
