@@ -41,4 +41,6 @@ trap 'DEST=/scratch/$USER/u-net/job_${SLURM_JOBID}; mkdir -p $DEST; tar czvf $DE
 # copy things back
 DEST=/scratch/$USER/u-net/job_${SLURM_JOBID}
 mkdir -p $DEST
-cp -r $TMPDIR/outputs $DEST/
+find $TMPDIR/outputs -name "*_best.pth" -exec cp --parents {} $DEST \;
+find $TMPDIR/outputs -name "*.log" -exec cp --parents {} $DEST \;
+find $TMPDIR/outputs -name "cfg.yaml" -exec cp --parents {} $DEST \;
