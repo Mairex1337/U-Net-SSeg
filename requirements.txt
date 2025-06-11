@@ -15,7 +15,7 @@ tqdm
 argparse
 torchmetrics
 pillow
-fastapi
+fastapi[standard]
 uvicorn
 python-multipart
 opencv-python
@@ -23,5 +23,7 @@ gdown
 streamlit
 requests
 dotenv
+numpy
+pytest
 seaborn
 pathlib

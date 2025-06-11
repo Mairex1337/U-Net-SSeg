@@ -2,7 +2,6 @@ import requests
 from io import BytesIO
 import os
 
-#TODO: see if we can do a progress bar by counting entries in temp_input_dir and comparing them with entries in temp_output_dir/color_masks
 
 def upload_image_or_zip(file_bytes: bytes, filename: str) -> BytesIO:
     """Uploads an image or ZIP file to the prediction API and returns the result.

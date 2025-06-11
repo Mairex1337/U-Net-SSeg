@@ -1,8 +1,7 @@
 import torch
-import yaml
 
 from src.data.dataloader import get_dataloader
-from src.utils import read_config, resolve_path, write_config
+from src.utils import read_config, write_config
 
 
 def calculate_mean_std() -> None:
@@ -27,8 +26,6 @@ def calculate_mean_std() -> None:
     mean = channel_sums / total_pixels
     var = (channel_sqr_sums / total_pixels) - (mean ** 2)
     std = torch.sqrt(var)
-
-    path = resolve_path("cfg.yaml")
 
     cfg['transforms']['normalize'] = {
         'mean':mean.tolist(),

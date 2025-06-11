@@ -1,101 +1,86 @@
-# U-Net Semantic Segmentation model
+# 🚗 U-Net Semantic Segmentation Model
 
-![alt text](images/seg_example.png)
+![Segmentation Example](images/seg_example.png)
 
-We trained a U-Net model on the semantic segmentation task via the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. The dataset includes images from road scenes with 19 diverse classes and various locations, times and weathers. The current iteration achieved an accuracy $0.8797$ on the test set vs. a random guessing accuracy of $1/19 \approx 0.0526$.
+We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location).
 
-## Usage Instructions
-### Pre-requisites
-1. Clone the repository:
+> ✅ Our current model achieves **0.8797 accuracy** on the test set.
+> 🎲 A random guess would yield just **1/19 ≈ 0.0526 accuracy**.
+
+---
+
+## 🛠️ Usage Instructions
+
+### ✅ Pre-requisites
+
+1. **Clone the Repository**
+
    ```bash
-   git clone https://github.com/Mairex1337/U-Net-SSeg.git
+   git clone -b submission https://github.com/Mairex1337/U-Net-SSeg.git
    ```
-2. Create and activate a virtual environment:
+
+2. **Create and Activate Virtual Environment**
+
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
-3. Navigate to the project root:
+
+3. **Navigate to Project Root**
+
    ```bash
    cd U-Net-SSeg
    ```
-4. Install dependencies:
+
+4. **Install Dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
-5. Download the model checkpoint:
+
+5. **Download the Model Checkpoint**
+
    ```bash
    python -m scripts.download_checkpoint
    ```
 
-### Expected Input Format
+---
 
-As per the assignment instructions, the API expects a `.json` file containing base64-encoded image data:
+## 🧪 API Endpoints and Input Formats
+
+The FastAPI backend supports the following endpoints for segmentation tasks:
+
+### 1. `/predict/returns-json/` – **Base64 Image Prediction (JSON)**
+
+Run segmentation on one or multiple **base64-encoded images**.
+
+
+#### 🔹 Request Format
 
 ```json
 {
-  "image_names": ["name.jpg", ...],
-  "images": ["/9j/4AAQSkZJRgABAQAAAQABAAD/...", ...]
+  "image_names": ["image1.jpg", "image2.jpg"],
+  "images": ["<base64-encoded-image1>", "<base64-encoded-image2>"]
 }
 ```
 
-- You can use the provided `api_images.json`, or convert your own images with:
+You can use the provided `api_images.json`, or convert your own images with:
 
-  ```bash
-  python -m scripts.img_json \
-    --path-to-images /path/to/image_folder \
-    --output-path /path/to/save/json \
-    --file-name optional_filename.json
-  ```
+```bash
+python -m scripts.img_json \
+  --path-to-images /path/to/images \
+  --output-path /path/to/save/json \
+  --file-name output.json
+```
 
-### Running the API
+#### 🔹 Response
 
-Launch the API server:
-   ```bash
-   python -m api.main
-   ```
-Request via curl:
-   ```bash
-      curl -X POST \
-      http://127.0.0.1:8000/predict/ \
-      -H "accept: application/json" \
-      -H "Content-Type: multipart/form-data" \
-      -F "file=@your_images.json;type=application/json"
-   ```
-- Change `"your_images.json"` as needed to either `api_images.json` or your custom image `.json` file.
-- This request will create an output.json file in the root of the repository, see below for instructions on how to convert it to images.
+* JSON with a list of prediction masks (also base64 encoded).
+* Additionally writes `output.json` to the repo root (can be converted to `.png` images).
 
-Request via GUI:
-- Open the `/docs` page in your browser (`http://127.0.0.1:8000`).
-- Go to the `/predict/` endpoint and click **"Try it out"**.
-- Upload `api_images.json` or your own converted file.
-- Click **"Execute"** to run inference.
-- Download the `output.json` file from the response.
+#### 🔄 Converting Output JSON to Images
 
-
-### Running Streamlit
-
-1. **Start the API**
-   Ensure that the API is running first, as the Streamlit app relies on it to make predictions.
-
-2. **Configure Environment Variables**
-   Set the `API_BASE_URL` and `SESSION_STATE_FILE` in your `.env` file. You can use the provided `.env.sample` as a reference, simply copy the values into your own `.env` file.
-
-3. **Launch the Streamlit App**
-   To run the Streamlit application locally, use the following command:
-
-   ```bash
-   streamlit run streamlit/app.py
-   ```
-
-   This should automatically open a new browser window displaying the application.
-   If it doesn't open automatically, you can access it manually by navigating to:
-   [http://localhost:8501](http://localhost:8501)
-
-
-### Converting the Output JSON Back to Images
-
-To view the predictions, convert the `output.json` back to images using:
+To visualize the predictions:
 
 ```bash
 python -m scripts.json_img \
@@ -103,12 +88,136 @@ python -m scripts.json_img \
   --output-path /path/to/save/images
 ```
 
-### Class Mapping
+---
 
-Colormap class mappings:
-![alt text](images/color_legend.png)
+### 2. `/predict-image/returns-zip/` – **Image Upload Prediction**
 
-Mask idx to class mappings:
+Run segmentation on uploaded **image files** (`.jpg`, `.jpeg`) or a **`.zip` archive** of images.
+
+
+
+#### 🔹 Request Format
+
+  * `.jpg`, `.png`, or `.zip` file of images.
+
+#### 🔹 Response
+
+* Returns a `.zip` archive containing:
+  * Original image/s.
+  * Predicted mask/s.
+  * Predicted colorized mask/s.
+
+#### 🔹 Example (cURL)
+
+```bash
+curl -X POST http://127.0.0.1:8000/predict-image/ \
+  -H "accept: application/zip" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@your_images.zip"
+```
+
+---
+
+### 3. `/predict-video/returns-zip/` – **Video Upload Prediction**
+
+Run segmentation on a **video file** (`.mp4`, `.avi`, `.mov`).
+
+
+#### 🔹 Request Format
+
+* a single `.mp4`, `.avi`, or `.mov` file.
+
+#### 🔹 Response
+
+* Returns a `.zip` archive containing:
+
+  * Extracted video frames.
+  * Predicted mask frames.
+  * Predicted colorized mask frames.
+  * Original video.
+  * Predicted video.
+
+#### 🔹 Example (cURL)
+
+```bash
+curl -X POST http://127.0.0.1:8000/predict-video/ \
+  -H "accept: application/zip" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@your_video.mp4"
+```
+
+---
+
+You can access all endpoints and test them interactively in your browser via:
+
+🌐 **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+
+---
+
+## 📺 Running Streamlit Frontend
+
+### 1. Ensure the API is Running
+
+The Streamlit app needs the FastAPI server running.
+
+### 2. Configure Environment Variables
+
+Create a `.env` file in the root directory and define:
+
+```env
+API_BASE_URL=http://localhost:8000
+SESSION_STATE_FILE=outputs/session.json
+```
+
+Use `.env.sample` as a reference.
+
+### 3. Launch Streamlit
+
+```bash
+streamlit run streamlit/app.py
+```
+
+Then open: [http://localhost:8501](http://localhost:8501)
+
+---
+
+## 🐳 Run the API and Streamlit App with Docker
+
+### 📥 Install Docker
+
+👉 [https://docs.docker.com/desktop](https://docs.docker.com/desktop)
+
+### 🧠 Memory Requirement
+
+Ensure Docker has at least **7–8 GB RAM** allocated:
+**Docker Desktop → Settings → Resources → Memory**
+
+---
+
+### ▶️ Start Both Apps
+
+```bash
+docker-compose up -d
+```
+
+### 🌍 Access the Apps
+
+* **Streamlit frontend**: [http://127.0.0.1:8501](http://127.0.0.1:8501)
+* **FastAPI docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+### 🛑 Stop the Services
+
+```bash
+docker-compose down
+```
+
+
+---
+
+## 🗺️ Class Mapping & Legend
+
+![Class Legend](images/color_legend.png)
 
 ```yaml
 0: road
@@ -131,3 +240,7 @@ Mask idx to class mappings:
 17: motorcycle
 18: bicycle
 ```
+
+---
+
+
