@@ -23,4 +23,19 @@ def move_data(src, dest):
             shutil.copy2(src_path, dest_path)
 
 if __name__ == "__main__":
-    pass
+    
+    link = "https://drive.google.com/file/d/1rQHFQ5VVmkB07028O3Qvu9KGqk67hdOh/view?usp=drive_link"
+    zip_file = "data.zip"
+    temp_extract_path = "temp_data"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    try:
+        download_data(link, zip_file)
+        extract_zip(zip_file, temp_extract_path)
+        move_data(temp_extract_path, os.path.join(project_root, "data"))
+    finally:
+        if os.path.exists(zip_file):
+            os.remove(zip_file)
+        if os.path.exists(temp_extract_path):
+            shutil.rmtree(temp_extract_path)
+        
