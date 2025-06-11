@@ -1,3 +1,4 @@
+from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 from log_parser import process_run_directory, collect_eval_results, compute_sem
@@ -135,7 +136,7 @@ def plot_evaluation_metrics(eval_df, class_df, train_df, output_dir):
     plt.savefig(os.path.join(output_dir, 'train_val_loss_comparison.png'))
     plt.close()
 
-def model_comparison_plot(metrics_baseline, metrics_model, output_path):
+def model_comparison_plot(combined_df, output_path):
     """
     Create a bar plot comparing model metrics against baseline metrics.
     Args:
@@ -144,16 +145,15 @@ def model_comparison_plot(metrics_baseline, metrics_model, output_path):
         output_path (str): Path to save the comparison plot.
     """
     plt.figure(figsize=(10, 6))
-    df = pd.DataFrame({
-        'Baseline': metrics_baseline,
-        'Model': metrics_model
-    })
-    df = df.T
-    df.columns = ['Pixel Acc', 'Mean Acc', 'Mean IoU', 'Mean Dice']
-    df.plot(kind='bar', rot=0, figsize=(8, 6))
-    plt.title("Model vs Baseline Comparison")
-    plt.ylabel("Score")
-    plt.ylim(0, 1)
+    sns.lineplot(data=combined_df[combined_df['type'] == 'train'],
+                 x='epoch', y='train_loss', hue='run_name', linestyle='-')
+    sns.lineplot(data=combined_df[combined_df['type'] == 'val'],
+                 x='epoch', y='val_loss', hue='run_name', linestyle='--')
+
+    plt.title("Training and Validation Loss: Model Comparison")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.grid(True)
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
@@ -218,13 +218,29 @@ if __name__ == "__main__":
                 sys.exit(1)
         
         try:
-            eval_dfs = collect_eval_results(run_dirs)
-            if eval_dfs.empty:
+            all_train_dfs = []
+            eval_dfs = []
+
+            for run_dir in run_dirs:
+                train_df, global_df, _ = process_run_directory(run_dir)
+                run_name = Path(run_dir).name
+                train_df["run_name"] = run_name
+                global_df["run_name"] = run_name
+                all_train_dfs.append(train_df)
+                eval_dfs.append(global_df)
+
+            eval_df = pd.concat(eval_dfs, ignore_index=True)
+            if eval_df.empty:
                 print("No evaluation metrics found in the provided run directories.")
                 sys.exit(1)
-            sem_df = compute_sem(eval_dfs)
+
+            sem_df = compute_sem(eval_df)
             sem_df.to_csv(os.path.join('outputs/sem_results.csv'), index=False)
             plot_dice_with_sem(sem_df)
+
+            train_df = pd.concat(all_train_dfs, ignore_index=True)
+            model_comparison_plot(train_df, "outputs/comparison_loss_curve.png")
+
         except Exception as e:
             print(f"Error during comparison: {e}")
             sys.exit(1)
