@@ -17,7 +17,10 @@ def move_data(src, dest):
     for item in os.listdir(src):
         src_path = os.path.join(src, item)
         dest_path = os.path.join(dest, item)
-        if os.path.isdir(src):
+        if os.path.isdir(src_path):
             shutil.move(src_path, dest_path)
         else:
             shutil.copy2(src_path, dest_path)
+
+if __name__ == "__main__":
+    pass
