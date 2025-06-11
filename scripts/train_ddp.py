@@ -106,15 +106,15 @@ def train_ddp(
 
     early_stopping = EarlyStopping(patience=10)
 
-    if loss_name == 'best':
+    if loss_name == 'best' and rank == 0:
         run_id = int(cfg['runs'][model_name])
         loss_name = get_best_loss(run_dir, run_id - 3)
         if rank == 0:
             logger.info("Loss was autoselected via get_best_loss()")
 
     criterion = get_loss_function(loss_name, cfg, device=rank)
-
-    logger.info(f"Loss used: {criterion.__class__.__name__}")
+    if rank == 0:
+        logger.info(f"Loss used: {criterion.__class__.__name__}")
 
     trainer = Trainer(
         model=model,

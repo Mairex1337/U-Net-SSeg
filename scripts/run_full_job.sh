@@ -17,7 +17,6 @@ tar xzf $TMPDIR/data.tar.gz -C $TMPDIR/
 
 trap 'DEST=/scratch/$USER/u-net/job_${SLURM_JOBID}; mkdir -p $DEST; tar czvf $DEST/outputs_timeout.tar.gz $TMPDIR/outputs' 12
 (
-    python3 -m scripts.find_batch_size --model unet
     python3 -m scripts.run_hyperparam_tuning --model unet --loss weighted_cle
     python3 -m scripts.train_ddp --model unet --loss weighted_cle
     python3 -m scripts.eval --model unet --run-id 1
