@@ -10,6 +10,7 @@ from tests.utils import get_batch, patch_all_except, toy_dataset
 from torchvision.transforms import functional as F
 from torchvision.transforms.functional import to_pil_image
 
+#add comment to test loop github actions
 
 @pytest.fixture(scope="function")
 def calculate_means_once(toy_dataset):
