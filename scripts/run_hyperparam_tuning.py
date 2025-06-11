@@ -21,6 +21,7 @@ def run_hyperparameter_tuning(
     if world_size == 0:
         raise RuntimeError("No GPUs found.")
     cfg = read_config()
+    epochs = cfg['hyperparams'][model_name]['epochs']
     cfg['hyperparams'][model_name]['epochs'] = 50
     resize = cfg['transforms']['resize']
     cfg['transforms']['resize'] = [256, 448]
@@ -93,12 +94,13 @@ def run_hyperparameter_tuning(
                 'weight_decay': current_weight_decay
             }
 
-    logger.info(f'Optimal found hyperparameters: lr = {best_hyperparams['lr']} | weight_decay = {best_hyperparams['weight_decay']}')
+    logger.info(f"Optimal found hyperparameters: lr = {best_hyperparams['lr']} | weight_decay = {best_hyperparams['weight_decay']}")
     cfg = read_config()
     cfg['hyperparams'][model_name]['lr'] = best_hyperparams['lr']
     cfg['hyperparams'][model_name]['weight_decay'] = best_hyperparams['weight_decay']
     cfg['runs'][model_name] = str(1)
     cfg['transforms']['resize'] = resize
+    cfg['hyperparams'][model_name]['epochs'] = epochs
     write_config(cfg)
 
     logger.info(f"Wrote hyperparams into cfg")

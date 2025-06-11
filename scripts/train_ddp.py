@@ -106,7 +106,7 @@ def train_ddp(
 
     early_stopping = EarlyStopping(patience=10)
 
-    if loss_name == 'best' and rank == 0:
+    if loss_name == 'best':
         run_id = int(cfg['runs'][model_name])
         loss_name = get_best_loss(run_dir, run_id - 3)
         if rank == 0:
@@ -153,7 +153,7 @@ def train_ddp(
     if rank == 0:
         if not tuning:
             trainer.determine_best_checkpoint()
-            logger.info(f"metric_score: {trainer.best_metric}, best_checkpoint_epoch: {trainer.best_checkpoint}")
+        logger.info(f"metric_score: {trainer.best_metric}, best_checkpoint_epoch: {trainer.best_checkpoint}")
         # increment run_id
         run_id = int(cfg['runs'][model_name])
         cfg['runs'][model_name] = str(run_id + 1)
