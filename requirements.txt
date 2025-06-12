@@ -25,3 +25,5 @@ requests
 dotenv
 numpy
 pytest
+seaborn
+pathlib
