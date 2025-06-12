@@ -24,7 +24,7 @@ def move_data(src, dest):
 
 if __name__ == "__main__":
     
-    link = "https://drive.google.com/file/d/1rQHFQ5VVmkB07028O3Qvu9KGqk67hdOh/view?usp=drive_link"
+    link = "https://drive.google.com/uc?id=1rQHFQ5VVmkB07028O3Qvu9KGqk67hdOh"
     zip_file = "data.zip"
     temp_extract_path = "temp_data"
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
