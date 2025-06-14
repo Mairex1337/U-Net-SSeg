@@ -27,3 +27,4 @@ numpy
 pytest
 seaborn
 pathlib
+gdown
