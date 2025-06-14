@@ -81,7 +81,7 @@ def train(model_name: Literal['baseline', 'unet']) -> None:
 
         metric_score = early_stopping.get_metric_score(results)
         trainer.save_checkpoint(epoch)
-        if metric_score < trainer.best_metric:
+        if metric_score > trainer.best_metric:
             trainer.best_checkpoint = epoch
             trainer.best_metric = metric_score
 

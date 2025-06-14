@@ -227,7 +227,6 @@ To train the a model from scratch on your own BDD100k dataset:
 
 ### 1. Get the Dataset
 
-
 ```bash
 python3 -m scripts.download_dataset
 ```
@@ -237,12 +236,16 @@ python3 -m scripts.download_dataset
 In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. under `hyperparameters/{model_name}`.
 
 ### 3. Train the model
+
 ```bash
 python3 -m scripts.train.py --model {model_name}
 ```
 Insert 'unet' or 'baseline' for 'model_name'.
 
-__NOTE__: Training will require at least 8GB of RAM. Training even one epoch of the U-Net model without an NVIDIA GPU is likely computationally unfeasible.
+__NOTE__:
+- Training will require at least 8GB of RAM. 
+- Make sure the `venv` with dependencies is activated.
+- Training even one epoch of the U-Net model without an NVIDIA GPU is likely computationally unfeasible.
 
 ### 4. Viewing results
 

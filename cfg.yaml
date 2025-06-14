@@ -59,10 +59,10 @@ data:
   val_masks: data/bdd100k/labels/sem_seg/masks/val/
 hyperparams:
   baseline:
-    batch_size: 4
+    batch_size: 2
     cle_weight: 0.5
     dice_weight: 0.5
-    epochs: 25
+    epochs: 100
     hidden_dim: 128
     ignore_index: 255
     input_dim: 3
