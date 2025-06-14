@@ -21,3 +21,6 @@ venv/
 streamlit/session_state.pkl
 
 .env
+
+*.out
+*.gz
