@@ -242,7 +242,7 @@ python3 -m scripts.train.py --model {model_name}
 ```
 Insert 'unet' or 'baseline' for 'model_name'.
 
-__NOTE__: Training will require at least 8GB of RAM. Training even one epoch of the U-Net model without an NVIDIA GPU is computationally unfeasible.
+__NOTE__: Training will require at least 8GB of RAM. Training even one epoch of the U-Net model without an NVIDIA GPU is likely computationally unfeasible.
 
 ### 4. Viewing results
 
