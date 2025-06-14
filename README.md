@@ -48,6 +48,12 @@ We trained a U-Net model for semantic segmentation using the [BDD100k](https://a
 
 ## 🧪 API Endpoints and Input Formats
 
+### Launch FastAPI
+
+```bash
+python -m api.main
+```
+
 The FastAPI backend supports the following endpoints for segmentation tasks:
 
 ### 1. `/predict/returns-json/` – **Base64 Image Prediction (JSON)**
