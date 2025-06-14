@@ -4,7 +4,7 @@
 
 We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location).
 
-> ✅ Our current model achieves **0.8797 accuracy** on the test set.
+> ✅ Our best checkpoint achieves **0.8797 accuracy** on the test set.
 > 🎲 A random guess would yield just **1/19 ≈ 0.0526 accuracy**.
 
 ---
@@ -221,30 +221,65 @@ docker-compose down
 
 ---
 
+## 🏁 Training a Fresh Model from Scratch
+
+To train the a model from scratch on your own BDD100k dataset:
+
+### 1. Get the Dataset
+
+
+```bash
+python3 -m scripts.download_dataset
+```
+
+### 2. Adjust hyperparameters (optional)
+
+In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. under `hyperparameters/{model_name}`.
+
+### 3. Train the model
+```bash
+python3 -m scripts.train.py --model {model_name}
+```
+Insert 'unet' or 'baseline' for 'model_name'.
+
+__NOTE__: Training will require at least 8GB of RAM. Training even one epoch of the U-Net model without an NVIDIA GPU is computationally unfeasible.
+
+### 4. Viewing results
+
+All checkpoints and logs will be stored in the _run directory_ which can be found here: `outputs/{model_name}/{run_id}`
+
+### 5. Evaluate the trained model
+
+If you would like to evaluate the trained model, you can do so via the appropriate `run_id` and the `model_name`:
+
+```bash
+python3 -m scripts.eval --model {model_name} --run-id {run_id}
+```
+
+Evaluation will automatically use the _best_ checkpoint.
+After evaluation, you will find metric results as well as predictions from the model in the _run directory_.
+
+---
+
 ## 🗺️ Class Mapping & Legend
 
 ![Class Legend](images/color_legend.png)
 
 ```yaml
-0: road
-1: sidewalk
-2: building
-3: wall
-4: fence
-5: pole
-6: traffic light
-7: traffic sign
-8: vegetation
-9: terrain
-10: sky
-11: person
-12: rider
-13: car
-14: truck
-15: bus
-16: train
-17: motorcycle
-18: bicycle
+  0: road
+  1: sidewalk
+  2: building
+  3: wall/fence
+  4: pole
+  5: traffic light
+  6: traffic sign
+  7: vegetation
+  8: terrain
+  9: sky
+  10: person/rider
+  11: car/truck/bus
+  12: motorcycle
+  13: bicycle
 ```
 
 ---
