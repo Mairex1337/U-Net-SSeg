@@ -4,7 +4,13 @@ import zipfile
 import gdown
 
 
-def download_checkpoint_and_dataset():
+def download_checkpoint_and_dataset() -> None:
+    """
+    Downloads dataset and best checkpoint for the project.
+
+    Returns:
+        None
+    """
     # Download checkpoint
     checkpoint_file_id = "1QF0SlfnzxUo2geXQ_sc-sUrE7l5iEofK"
     checkpoint_dir = os.path.join("outputs", "unet", "1", "checkpoints")
@@ -20,9 +26,9 @@ def download_checkpoint_and_dataset():
     dataset_zip_path = "dataset.zip"
     gdown.download(id=dataset_file_id, output=dataset_zip_path, quiet=False)
     print(f"Downloaded dataset to {dataset_zip_path}")
-
+    os.makedirs('data', exist_ok=True)
     with zipfile.ZipFile(dataset_zip_path, 'r') as zip_ref:
-        zip_ref.extractall()
+        zip_ref.extractall('data')
     print("Unzipped dataset.")
 
 if __name__ == "__main__":
