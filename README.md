@@ -2,11 +2,24 @@
 
 ![Segmentation Example](images/seg_example.png)
 
-We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location).
+We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location). 
 
-> ✅ Our best checkpoint achieves **0.8797 accuracy** on the test set.
-> 🎲 A random guess would yield just **1/19 ≈ 0.0526 accuracy**.
+![Class Distribution](images/class_distribution.png)
 
+
+Due to labelling inconsistencies and extreme class imabalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to being extremely rare and being commonly mislabeled.
+
+
+### 📊 Evaluation Metrics by Loss Function
+
+As class imbalance is the key challenge for the semantic segmentation task, we decided to compare 4 different losses that account for that in different manners.
+
+| Loss Function | Pixel Accuracy | Mean Accuracy | Mean IoU | Mean Dice (F1) |
+|---------------|----------------|----------------|----------|----------------|
+| Weighted CEL  | 0.8926         | 0.6653         | 0.5270   | 0.6554         |
+|OHEM CEL       | 0.8965         | 0.5833         | 0.5046   | 0.6216         |
+|Dice loss      |          |          |    |         |
+|Dice loss + CEL      |          |          |    |          |
 ---
 
 ## 🛠️ Usage Instructions
