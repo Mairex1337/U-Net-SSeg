@@ -1,6 +1,8 @@
 import re
 from pathlib import Path
+
 import pandas as pd
+
 
 def parse_training_log(log_file):
     """
@@ -59,7 +61,9 @@ def parse_training_log(log_file):
 
 import re
 from pathlib import Path
+
 import pandas as pd
+
 
 def parse_evaluation_log(log_file):
     """

@@ -1,11 +1,14 @@
-from pathlib import Path
-import matplotlib.pyplot as plt
-import seaborn as sns
-from log_parser import process_run_directory, collect_eval_results, compute_sem
 import os
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sys
+import seaborn as sns
+
+from scripts.analysis.log_parser import compute_sem, process_run_directory
+
 
 def plot_training_metrics(train_df, output_dir):
     """
