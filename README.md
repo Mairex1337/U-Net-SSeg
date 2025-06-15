@@ -1,25 +1,27 @@
 # 🚗 U-Net Semantic Segmentation Model
 
+
 ![Segmentation Example](images/seg_example.png)
 
+
 We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location). 
+
+Due to labelling inconsistencies and extreme class imbalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to being extremely rare and being commonly mislabeled.
 
 ![Class Distribution](images/class_distribution.png)
 
 
-Due to labelling inconsistencies and extreme class imabalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to being extremely rare and being commonly mislabeled.
-
-
 ### 📊 Evaluation Metrics by Loss Function
 
-As class imbalance is the key challenge for the semantic segmentation task, we decided to compare 4 different losses that account for that in different manners.
+As class imbalance is the key challenge for the semantic segmentation task, we decided to compare 4 different losses that are commonly used for such tasks in the literature.
 
 | Loss Function | Pixel Accuracy | Mean Accuracy | Mean IoU | Mean Dice (F1) |
 |---------------|----------------|----------------|----------|----------------|
 | Weighted CEL  | 0.8926         | 0.6653         | 0.5270   | 0.6554         |
 |OHEM CEL       | 0.8965         | 0.5833         | 0.5046   | 0.6216         |
-|Dice loss      |          |          |    |         |
-|Dice loss + CEL      |          |          |    |          |
+|Dice loss      | 0.8915         | 0.6286         | 0.5435   | 0.6744         |
+|Dice loss + CEL | 0.9041        | 0.6353         | 0.5575   | 0.6856         |
+
 ---
 
 ## 🛠️ Usage Instructions
@@ -87,9 +89,9 @@ You can use the provided `api_images.json`, or convert your own images with:
 
 ```bash
 python -m scripts.img_json \
-  --path-to-images /path/to/images \
-  --output-path /path/to/save/json \
-  --file-name output.json
+  --path-to-images </path/to/images> \
+  --output-path </path/to/save/json> \
+  --file-name <output.json>
 ```
 
 #### 🔹 Response
@@ -103,8 +105,8 @@ To visualize the predictions:
 
 ```bash
 python -m scripts.json_img \
-  --path-to-json /path/to/output.json \
-  --output-path /path/to/save/images
+  --path-to-json </path/to/output.json> \
+  --output-path </path/to/save/images>
 ```
 
 ---
@@ -132,7 +134,7 @@ Run segmentation on uploaded **image files** (`.jpg`, `.jpeg`) or a **`.zip` arc
 curl -X POST http://127.0.0.1:8000/predict-image/ \
   -H "accept: application/zip" \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@your_images.zip"
+  -F "file=@<your_images.zip>"
 ```
 
 ---
@@ -162,7 +164,7 @@ Run segmentation on a **video file** (`.mp4`, `.avi`, `.mov`).
 curl -X POST http://127.0.0.1:8000/predict-video/ \
   -H "accept: application/zip" \
   -H "Content-Type: multipart/form-data" \
-  -F "file=@your_video.mp4"
+  -F "file=@<your_video.mp4>"
 ```
 
 ---
@@ -246,12 +248,12 @@ python3 -m scripts.download_dataset
 
 ### 2. Adjust hyperparameters (optional)
 
-In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. under `hyperparameters/{model_name}`.
+In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. under `hyperparameters/<model_name>`.
 
 ### 3. Train the model
 
 ```bash
-python3 -m scripts.train.py --model {model_name}
+python3 -m scripts.train.py --model <model_name>
 ```
 Insert 'unet' or 'baseline' for 'model_name'.
 
@@ -262,14 +264,14 @@ __NOTE__:
 
 ### 4. Viewing results
 
-All checkpoints and logs will be stored in the _run directory_ which can be found here: `outputs/{model_name}/{run_id}`
+All checkpoints and logs will be stored in the _run directory_ which can be found here: `outputs/<model_name>/<run_id>`
 
 ### 5. Evaluate the trained model
 
 If you would like to evaluate the trained model, you can do so via the appropriate `run_id` and the `model_name`:
 
 ```bash
-python3 -m scripts.eval --model {model_name} --run-id {run_id}
+python3 -m scripts.eval --model <model_name> --run-id <run_id>
 ```
 
 Evaluation will automatically use the _best_ checkpoint.

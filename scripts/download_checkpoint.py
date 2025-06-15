@@ -11,7 +11,7 @@ def download_checkpoint() -> None:
         None
     """
     # Download checkpoint
-    checkpoint_file_id = "1QF0SlfnzxUo2geXQ_sc-sUrE7l5iEofK"
+    checkpoint_file_id = "1hwLeGS4s-DqXg8HpslyWSseHhB7RZdVF"
     checkpoint_dir = os.path.join("outputs", "unet", "1", "checkpoints")
     os.makedirs(checkpoint_dir, exist_ok=True)
     temp_checkpoint = os.path.join(checkpoint_dir, "checkpoint_temp.pth")
