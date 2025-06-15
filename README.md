@@ -4,7 +4,7 @@
 ![Segmentation Example](images/seg_example.png)
 
 
-We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location). 
+We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location).
 
 Due to labelling inconsistencies and extreme class imbalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to being extremely rare and being commonly mislabeled.
 
@@ -31,7 +31,7 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
 1. **Clone the Repository**
 
    ```bash
-   git clone -b submission https://github.com/Mairex1337/U-Net-SSeg.git
+   git clone --depth 1 --branch main https://github.com/Mairex1337/U-Net-SSeg.git
    ```
 
 2. **Create and Activate Virtual Environment**
@@ -56,27 +56,42 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
 5. **Download the Model Checkpoint**
 
    ```bash
-   python -m scripts.download_checkpoint
+   python3 -m scripts.download_checkpoint
    ```
 
 ---
 
-## 🧪 API Endpoints and Input Formats
+## 🚀 API – Local Usage Guide
 
-### Launch FastAPI
+This section explains how to run and test the API locally.
+
+> 🔧 Replace everything inside `<...>` with the appropriate file path or filename on your system.
+
+---
+
+### 🚀 Launch FastAPI
+
+Start the FastAPI backend:
 
 ```bash
-python -m api.main
+python3 -m api.main
 ```
 
-The FastAPI backend supports the following endpoints for segmentation tasks:
+Once running, explore and test all endpoints interactively via:
 
-### 1. `/predict/returns-json/` – **Base64 Image Prediction (JSON)**
+🌐 **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-Run segmentation on one or multiple **base64-encoded images**.
+Alternatively, you can use the provided `curl` commands below.
 
+---
 
-#### 🔹 Request Format
+### Available API Endpoints
+
+#### 1. `/predict/returns-json/` — **Base64 Image Prediction (JSON)**
+
+Runs segmentation on one or more **base64-encoded images**.
+
+##### 📤 Request Format
 
 ```json
 {
@@ -85,123 +100,125 @@ Run segmentation on one or multiple **base64-encoded images**.
 }
 ```
 
-You can use the provided `api_images.json`, or convert your own images with:
+##### 📥 Response
+
+* Returns JSON with predicted masks (base64-encoded).
+* Additionally writes an `output.json` file to the project root (which can be converted to `.png` masks).
+
+##### Example cURL Command
 
 ```bash
-python -m scripts.img_json \
+curl -X POST http://127.0.0.1:8000/predict/returns-json/ \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d @<path/to/api_images.json> \
+  --output <result.json>
+```
+
+##### 🔄 Convert Images to Input JSON
+
+If you want to convert your own images to the required input format:
+
+```bash
+python3 -m scripts.img_json \
   --path-to-images </path/to/images> \
   --output-path </path/to/save/json> \
   --file-name <output.json>
 ```
 
-#### 🔹 Response
+##### 🔄 Convert Output JSON to Images
 
-* JSON with a list of prediction masks (also base64 encoded).
-* Additionally writes `output.json` to the repo root (can be converted to `.png` images).
-
-#### 🔄 Converting Output JSON to Images
-
-To visualize the predictions:
+Visualize predictions with:
 
 ```bash
-python -m scripts.json_img \
+python3 -m scripts.json_img \
   --path-to-json </path/to/output.json> \
   --output-path </path/to/save/images>
 ```
 
 ---
 
-### 2. `/predict-image/returns-zip/` – **Image Upload Prediction**
+#### 2. `/predict-image/returns-zip/` — **Image Upload Prediction**
 
-Run segmentation on uploaded **image files** (`.jpg`, `.jpeg`) or a **`.zip` archive** of images.
+Runs segmentation on `.jpg`, `.png`, or a `.zip` archive of image files.
 
+##### 📤 Request Format
 
+* Single image (`.jpg`, `.png`)
+* or `.zip` archive of multiple images
 
-#### 🔹 Request Format
+##### 📥 Response
 
-  * `.jpg`, `.png`, or `.zip` file of images.
+* A `.zip` file containing:
 
-#### 🔹 Response
+  * Original image(s)
+  * Predicted mask(s)
+  * Colorized prediction(s)
 
-* Returns a `.zip` archive containing:
-  * Original image/s.
-  * Predicted mask/s.
-  * Predicted colorized mask/s.
-
-#### 🔹 Example (cURL)
-
-```bash
-curl -X POST http://127.0.0.1:8000/predict-image/ \
-  -H "accept: application/zip" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@<your_images.zip>"
-```
-
----
-
-### 3. `/predict-video/returns-zip/` – **Video Upload Prediction**
-
-Run segmentation on a **video file** (`.mp4`, `.avi`, `.mov`).
-
-
-#### 🔹 Request Format
-
-* a single `.mp4`, `.avi`, or `.mov` file.
-
-#### 🔹 Response
-
-* Returns a `.zip` archive containing:
-
-  * Extracted video frames.
-  * Predicted mask frames.
-  * Predicted colorized mask frames.
-  * Original video.
-  * Predicted video.
-
-#### 🔹 Example (cURL)
+##### Example cURL Command
 
 ```bash
-curl -X POST http://127.0.0.1:8000/predict-video/ \
+curl -X POST http://127.0.0.1:8000/predict-image/returns-zip/ \
   -H "accept: application/zip" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@<your_video.mp4>"
+  -F "files=@<image/or/zip/path/here>" \
+  --output <result.zip>
 ```
 
 ---
 
-You can access all endpoints and test them interactively in your browser via:
+#### 3. `/predict-video/returns-zip/` — **Video Upload Prediction**
 
-🌐 **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+Runs segmentation on a video file.
 
+##### 📤 Request Format
+
+* A `.mp4`, `.avi`, or `.mov` video
+
+##### 📥 Response
+
+A `.zip` archive containing:
+
+* Extracted video frames
+* Predicted mask frames
+* Colorized mask frames
+* Original video
+* Predicted (masked) video
+
+##### Example cURL Command
+
+```bash
+curl -X POST http://127.0.0.1:8000/predict-video/returns-zip/ \
+  -H "accept: application/zip" \
+  -F "file=@<video/path/here>" \
+  --output <result.zip>
+```
 
 ---
 
-## 📺 Running Streamlit Frontend
+## 📺 Running the Streamlit Frontend
 
-### 1. Ensure the API is Running
+### 1. ✅ Start the FastAPI Backend First
 
-The Streamlit app needs the FastAPI server running.
+The Streamlit app communicates with the API, so make sure the FastAPI server is running.
 
-### 2. Configure Environment Variables
+---
 
-Create a `.env` file in the root directory and define:
+### 2. 🚀 Launch Streamlit
 
-```env
-API_BASE_URL=http://localhost:8000
-SESSION_STATE_FILE=outputs/session.json
-```
-
-Use `.env.sample` as a reference.
-
-### 3. Launch Streamlit
+Start the frontend with:
 
 ```bash
 streamlit run streamlit/app.py
 ```
 
-Then open: [http://localhost:8501](http://localhost:8501)
+Then open your browser and go to:
+
+🌐 [http://localhost:8501](http://localhost:8501)
+
+Check the **Instructions** page within the app for more usage details.
 
 ---
+
 
 ## 🐳 Run the API and Streamlit App with Docker
 
@@ -209,10 +226,24 @@ Then open: [http://localhost:8501](http://localhost:8501)
 
 👉 [https://docs.docker.com/desktop](https://docs.docker.com/desktop)
 
+
 ### 🧠 Memory Requirement
 
-Ensure Docker has at least **7–8 GB RAM** allocated:
-**Docker Desktop → Settings → Resources → Memory**
+To run the application smoothly, ensure that your system meets the following memory requirements:
+
+* Allocate at least **7–8 GB RAM** to Docker:
+  **Docker Desktop → Settings → Resources → Memory**
+
+* 💡 *Optional Optimization*:
+  To reduce memory consumption, you can modify the image resizing configuration in `cfg.yaml`:
+
+```yaml
+transforms:
+  resize:
+  - 368
+  - 640
+```
+
 
 ---
 
@@ -258,7 +289,7 @@ python3 -m scripts.train.py --model <model_name>
 Insert 'unet' or 'baseline' for 'model_name'.
 
 __NOTE__:
-- Training will require at least 8GB of RAM. 
+- Training will require at least 8GB of RAM.
 - Make sure the `venv` with dependencies is activated.
 - Training even one epoch of the U-Net model without an NVIDIA GPU is likely computationally unfeasible.
 
@@ -301,5 +332,3 @@ After evaluation, you will find metric results as well as predictions from the m
 ```
 
 ---
-
-
