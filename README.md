@@ -314,7 +314,7 @@ In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. u
 ### 3. Train the model
 
 ```bash
-python3 -m scripts.train.py --model <model_name>
+python3 -m scripts.train --model <model_name>
 ```
 Insert 'unet' or 'baseline' for 'model_name'.
 
