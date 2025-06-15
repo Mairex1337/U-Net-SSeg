@@ -1,19 +1,27 @@
 # 🚗 U-Net Semantic Segmentation Model
 
 
-![Segmentation Example](images/seg_example.png)
 
+<div align="center">
+  <img src="images/seg_example.png" width="90%">
+  <p><em>Figure 1: Example input image and colormap prediction.</em></p>
+</div>
 
 We trained a U-Net model for semantic segmentation using the [BDD100k](https://arxiv.org/abs/1805.04687) dataset. This dataset contains images from road scenes with **19 semantic classes**, captured under diverse conditions (e.g., weather, time, location).
 
-Due to labelling inconsistencies and extreme class imbalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to being extremely rare and being commonly mislabeled.
+Due to labelling inconsistencies and extreme class imbalance we combined and excluded classes such that we ended up using 14. We merged `car + truck + bus`, `wall + fence`, and `person + rider`. We removed the `train` class due to it being extremely rare and commonly mislabeled.
 
-![Class Distribution](images/class_distribution.png)
 
+
+
+<div align="center">
+  <img src="images/class_distribution.png" width="65%">
+  <p><em>Figure 2: Class distribution for the semantic segmentation task of the BDD100k dataset.</em></p>
+</div>
 
 ### 📊 Evaluation Metrics by Loss Function
 
-As class imbalance is the key challenge for the semantic segmentation task, we decided to compare 4 different losses that are commonly used for such tasks in the literature.
+As class imbalance is the key challenge for the semantic segmentation task, we decided to compare 4 different losses that are commonly used for such tasks in the literature. 
 
 | Loss Function | Pixel Accuracy | Mean Accuracy | Mean IoU | Mean Dice (F1) |
 |---------------|----------------|----------------|----------|----------------|
@@ -21,10 +29,24 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
 |OHEM CEL       | 0.8965         | 0.5833         | 0.5046   | 0.6216         |
 |Dice loss      | 0.8915         | 0.6286         | 0.5435   | 0.6744         |
 |Dice loss + CEL | 0.9041        | 0.6353         | 0.5575   | 0.6856         |
+<p align="center"><em>Table 1: Comparison of loss functions on segmentation metrics.</em></p>
+
+
+
+> ✅ Our best model achieves **0.9041 accuracy** on the test set.
+🎲 A random guess would yield just **1/14 ≈ 0.0714 accuracy**.
+
+<div align="center">
+  <img src="images/training_plot.png" width="49%">
+  <img src="images/metrics_epochs.png" width="49%">
+  <p><em>Figure 3: Training and validation metrics over epochs for U-Net model using Dice loss + CEL.</em></p>
+</div>
 
 ---
 
 ## 🛠️ Usage Instructions
+
+We provide various ways to do inference using our best performing checkpoint.
 
 ### ✅ Pre-requisites
 
@@ -37,8 +59,8 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
 2. **Create and Activate Virtual Environment**
 
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate
+   python3 -m venv unet_env
+   source unet_env/bin/activate
    ```
 
 3. **Navigate to Project Root**
@@ -58,6 +80,8 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
    ```bash
    python3 -m scripts.download_checkpoint
    ```
+
+    This is the best U-Net checkpoint trained via the mixed CEL + Dice loss. Will be extracted into: `outputs/unet/1/checkpoints/chkpt_epoch_100_best.pth`.
 
 6. **Memory Requirements**:
 
@@ -281,6 +305,8 @@ To train the a model from scratch on your own BDD100k dataset:
 python3 -m scripts.download_dataset
 ```
 
+The dataset will be extracted in to `data/`.
+
 ### 2. Adjust hyperparameters (optional)
 
 In the `cfg.yaml` file, you can adjust e.g. `LR`, `Batch size`, `Epochs`, etc. under `hyperparameters/<model_name>`.
@@ -311,6 +337,45 @@ python3 -m scripts.eval --model <model_name> --run-id <run_id>
 
 Evaluation will automatically use the _best_ checkpoint.
 After evaluation, you will find metric results as well as predictions from the model in the _run directory_.
+
+---
+
+
+## 📂 Navigating the repository
+
+```
+.
+├── api
+│   ├── __init__.py
+│   ├── main.py
+│   ├── routes
+│   │   ├── ...
+│   └── utils
+│       ├── ...
+├── cfg.yaml
+├── ...
+├── scripts
+│   ├── ...
+├── src
+│   ├── __init__.py
+│   ├── models
+│   │   ├── ...
+│   ├── training
+│   │   ├── ...
+│   └── utils
+│       ├── ...
+├── streamlit
+│   ├── ...
+└── tests
+    ├── ...
+```
+
+**api**: Logic for FastAPI, containing necessary routes and logic.
+**scripts**: Python/bash scripts to be called directly. These include training scripts, evalutation scripts, hyperparameter tuning scripts, colormapping scripts, etc.
+**src**: Source code of the project. Contains the models, training logic, metrics, and all necessary utilities.
+**streamlit**: Logic for the streamlit application.
+**tests**: Integration/unit - tests used with GitHub actions.
+**cfg.yaml**: Contains all configurations of the project including hyperparameters, path setting, etc.
 
 ---
 
