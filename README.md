@@ -59,6 +59,18 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
    python3 -m scripts.download_checkpoint
    ```
 
+6. **Memory Requirements**:
+
+    You will need __at least__ 8gb of RAM to run the API or train a model from scratch.
+    > If you still run in to `out of memory` errors, you can modify the image resizing configuration in `cfg.yaml` to the following:
+
+    ```yaml
+    transforms:
+      resize:
+      - 368
+      - 640
+    ```
+
 ---
 
 ## 🚀 API – Local Usage Guide
@@ -111,8 +123,8 @@ Runs segmentation on one or more **base64-encoded images**.
 curl -X POST http://127.0.0.1:8000/predict/returns-json/ \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
-  -d @<path/to/api_images.json> \
-  --output <result.json>
+  -d @api_images.json \
+  --output result.json
 ```
 
 ##### 🔄 Convert Images to Input JSON
@@ -125,6 +137,7 @@ python3 -m scripts.img_json \
   --output-path </path/to/save/json> \
   --file-name <output.json>
 ```
+To use in the curl command, replace the `api_images.json` with your converted file.
 
 ##### 🔄 Convert Output JSON to Images
 
@@ -233,17 +246,6 @@ To run the application smoothly, ensure that your system meets the following mem
 
 * Allocate at least **7–8 GB RAM** to Docker:
   **Docker Desktop → Settings → Resources → Memory**
-
-* 💡 *Optional Optimization*:
-  To reduce memory consumption, you can modify the image resizing configuration in `cfg.yaml`:
-
-```yaml
-transforms:
-  resize:
-  - 368
-  - 640
-```
-
 
 ---
 
