@@ -127,6 +127,8 @@ curl -X POST http://127.0.0.1:8000/predict/returns-json/ \
   --output result.json
 ```
 
+This will use the `api_images.json` file which contains precompiled images for you to test inference with.
+
 ##### 🔄 Convert Images to Input JSON
 
 If you want to convert your own images to the required input format:
