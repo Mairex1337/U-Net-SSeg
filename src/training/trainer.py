@@ -55,7 +55,7 @@ class Trainer:
         self.world_size = world_size
         self.rank = rank
         self.ddp = world_size > 1
-        self.best_val_loss = float("inf")
+        self.best_metric = -float("inf")
         self.best_checkpoint = -1
         self._bar_format = "{l_bar}{bar} | {n_fmt}/{total_fmt} [{rate_fmt} {postfix}]"
         self._train_samples = len(self.train_loader.dataset)
@@ -76,7 +76,7 @@ class Trainer:
         self.model.train()
         torch.cuda.reset_peak_memory_stats(self.device)
         total_loss = torch.tensor(0.0, device=self.device)
-        if self.rank == 0:
+        if not self.ddp:
             loop = tqdm.tqdm(
                 total=len(self.train_loader.dataset), 
                 desc=f"Train epoch {epoch}",
@@ -94,7 +94,7 @@ class Trainer:
                 self.optimizer.step()
                 self.scheduler.step()
                 total_loss += loss.detach()
-                if self.rank == 0:
+                if not self.ddp:
                     loop.set_postfix(loss=f"{loss.item():.4f}")
                     loop.update(len(images))
         
@@ -130,7 +130,7 @@ class Trainer:
         self.model.eval()
         self.metrics.reset()
         total_loss = torch.tensor(0.0, device=self.device)
-        if self.rank == 0:
+        if not self.ddp:
             loop = tqdm.tqdm(
                 total=len(self.val_loader.dataset),
                 desc=f"Validate epoch {epoch}",
@@ -146,7 +146,7 @@ class Trainer:
                         loss = self.criterion(outputs, masks)
                     self.metrics.update(torch.argmax(outputs, dim=1), masks)
                     total_loss += loss.detach()
-                    if self.rank == 0:
+                    if not self.ddp:
                         loop.set_postfix(loss=f"{loss.item():.4f}")
                         loop.update(len(images))
         results = self.metrics.compute()

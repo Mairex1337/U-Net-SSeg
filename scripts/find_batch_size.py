@@ -34,7 +34,7 @@ def find_batch_size(
     torch.set_float32_matmul_precision("high")
 
     try:
-        batch_size = 2
+        batch_size = 1
         cfg = read_config()
         if rank == 0:
             run_dir = get_run_dir(cfg['runs'][model_name], model_name)

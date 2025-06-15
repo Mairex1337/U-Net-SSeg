@@ -10,15 +10,18 @@ import yaml
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from src.data import get_dataloader
-from src.training import EarlyStopping, Trainer, get_weighted_criterion
-from src.utils import (SegmentationMetrics, get_logger, get_model, get_run_dir,
-                       read_config, setup_ddp_process, write_config)
+from src.training import EarlyStopping, Trainer, get_loss_function
+from src.utils import (SegmentationMetrics, get_best_loss, get_logger,
+                       get_model, get_run_dir, read_config, setup_ddp_process,
+                       write_config)
 
 
 def train_ddp(
         rank: int,
         world_size: int,
-        model_name: Literal['baseline', 'unet']
+        model_name: Literal['baseline', 'unet'],
+        loss_name: Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice'],
+        tuning: bool = False
 ) -> None:
     """
     Dispatch a distributed training job for the specified model.
@@ -42,7 +45,10 @@ def train_ddp(
     )
 
     if rank == 0:
-        run_dir = get_run_dir(cfg['runs'][model_name], model_name)
+        if not tuning:
+            run_dir = get_run_dir(cfg['runs'][model_name], model_name)
+        else:
+            run_dir = get_run_dir(os.path.join('tuning', cfg['runs'][model_name]), model_name)
         chkpt_dir = os.path.join(run_dir, 'checkpoints')
         # save copy of cfg.yaml in run dir
         with open(os.path.join(run_dir, 'cfg.yaml'), 'w') as f:
@@ -80,7 +86,7 @@ def train_ddp(
 
     fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
     if rank == 0:
-        logger.info(f"Starting training with model: {model_name}\nUsing fused optimizer: {fused_available}")
+        logger.info(f"Starting training with model: {model_name}. Using fused optimizer: {fused_available}")
         logger.info(f"Using run_dir: {run_dir}, using checkpoint dir: {chkpt_dir}")
 
     optimizer = torch.optim.AdamW(
@@ -98,9 +104,16 @@ def train_ddp(
         pct_start=0.15,
     )
 
-    early_stopping = EarlyStopping(patience=15)
+    early_stopping = EarlyStopping(patience=10)
 
-    criterion = get_weighted_criterion(cfg, device=rank)
+    if loss_name == 'best':
+        loss_name = get_best_loss(run_dir, 1)
+        if rank == 0:
+            logger.info("Loss was autoselected via get_best_loss()")
+
+    criterion = get_loss_function(loss_name, cfg, device=rank)
+    if rank == 0:
+        logger.info(f"Loss used: {criterion.__class__.__name__}")
 
     trainer = Trainer(
         model=model,
@@ -123,22 +136,23 @@ def train_ddp(
             train_loader.sampler.set_epoch(epoch)
         trainer.train_epoch(epoch)
         results = trainer.validate_epoch(epoch)
-        val_loss = results['loss']
-        if rank == 0:
+        metric_score = early_stopping.get_metric_score(results)
+        if rank == 0 and not tuning:
             trainer.save_checkpoint(epoch, raw_model)
-            if val_loss < trainer.best_val_loss:
-                trainer.best_checkpoint = epoch
-                trainer.best_val_loss = val_loss
-        stop_flag = early_stopping(results["mIoU"])
+        if metric_score > trainer.best_metric:
+            trainer.best_checkpoint = epoch
+            trainer.best_metric = metric_score
 
-        if stop_flag:
+        if early_stopping(metric_score):
             if rank == 0 :
                 logger.info(f"Early stopping training at epoch {epoch}")
             break
-        dist.barrier()
+    dist.barrier()
 
     if rank == 0:
-        trainer.determine_best_checkpoint()
+        if not tuning:
+            trainer.determine_best_checkpoint()
+        logger.info(f"metric_score: {trainer.best_metric}, best_checkpoint_epoch: {trainer.best_checkpoint}")
         # increment run_id
         run_id = int(cfg['runs'][model_name])
         cfg['runs'][model_name] = str(run_id + 1)
@@ -149,9 +163,15 @@ def train_ddp(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['baseline', 'unet'], required=True)
+    parser.add_argument(
+        '--loss',
+        type=str,
+        choices=['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice', 'best'],
+        required=True
+    )
     args = parser.parse_args()
     world_size = torch.cuda.device_count()
     mp.spawn(train_ddp,
-            args=(world_size, args.model,),
+            args=(world_size, args.model, args.loss, False,),
             nprocs=world_size,
             join=True)

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-from src.utils import read_config
+
+from src.utils.path import read_config
 
 
 def convert_grayscale_to_colored_mask(
@@ -19,16 +20,23 @@ def convert_grayscale_to_colored_mask(
         FileNotFoundError: If the image file does not exist or cannot be read.
     """
     cfg = read_config()
+    old_to_new = cfg['oldid_newid']
     colormap = cfg['class_distribution']['color_map']
 
-    gray_mask = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    new_to_old = {}
+    for old_id, new_id in old_to_new.items():
+        if new_id == 255:
+            continue
+        new_to_old.setdefault(new_id, old_id)
 
-    if gray_mask is None:
-        raise FileNotFoundError(f"Image not found or could not be read: {image_path}")
+    mask = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if mask is None:
+        raise FileNotFoundError(f"Image not found: {image_path}")
 
-    color_mask = np.zeros((*gray_mask.shape, 3), dtype=np.uint8)
+    color_mask = np.zeros((*mask.shape, 3), dtype=np.uint8)
 
-    for label, color in colormap.items():
-        color_mask[gray_mask == label] = color
+    for new_id, old_id in new_to_old.items():
+        color = colormap[int(old_id)]
+        color_mask[mask == int(new_id)] = color
 
     return cv2.cvtColor(color_mask, cv2.COLOR_RGB2BGR)

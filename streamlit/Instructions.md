@@ -17,7 +17,7 @@ This app supports **inference on images, ZIP files**, and **entire videos**.
 The app is organized into three main pages:
 
 ### 1. 📁 Upload Files
-- Upload image, ZIP, or video files.
+- Upload image, ZIP, or mp4 files.
 - Files are stored in Streamlit's session state for use throughout the session.
 
 ### 2. ⚙️ Run Predictions

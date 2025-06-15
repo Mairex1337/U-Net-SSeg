@@ -1,6 +1,7 @@
-import os
 from pathlib import Path
-from visualize_metrics import visualize_run
+
+from scripts.analysis.visualize_metrics import visualize_run
+
 
 def process_all_runs(outputs_dir='outputs'):
     """Process all model runs in the outputs directory"""

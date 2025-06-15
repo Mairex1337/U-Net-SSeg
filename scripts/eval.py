@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 
+import cv2
 import torch
 import torchvision.transforms.functional as TF
 import tqdm
@@ -9,8 +10,9 @@ from PIL import Image
 from torch.utils.data import DataLoader
 
 from src.data import get_dataloader
-from src.utils import (SegmentationMetrics, get_device,
-                       get_logger, get_run_dir, read_config, load_model)
+from src.utils import (SegmentationMetrics, convert_grayscale_to_colored_mask,
+                       get_device, get_logger, get_run_dir, load_model,
+                       read_config)
 
 
 def evaluate_model(
@@ -56,6 +58,7 @@ def evaluate_model(
     os.makedirs(os.path.join(run_dir, "outputs", "predictions"), exist_ok=True)
     os.makedirs(os.path.join(run_dir, "outputs", "images"), exist_ok=True)
     os.makedirs(os.path.join(run_dir, "outputs", "masks"), exist_ok=True)
+    os.makedirs(os.path.join(run_dir, "outputs", "color_predictions"), exist_ok=True)
 
     mean = torch.tensor(norms['mean']).view(3, 1, 1).to(device)
     std = torch.tensor(norms['std']).view(3, 1, 1).to(device)
@@ -78,6 +81,8 @@ def evaluate_model(
                 Image.fromarray(pred_np).save(os.path.join(run_dir, "outputs", "predictions", f"{img_idx:05}.png"))
                 Image.fromarray(mask_np).save(os.path.join(run_dir, "outputs", "masks", f"{img_idx:05}.png"))
                 TF.to_pil_image(img).save(os.path.join(run_dir, "outputs", "images", f"{img_idx:05}.png"))
+                color_img = convert_grayscale_to_colored_mask(os.path.join(os.path.join(run_dir, "outputs", "predictions", f"{img_idx:05}.png")))
+                cv2.imwrite(os.path.join(run_dir, "outputs", "color_predictions", f"{img_idx:05}.png"), color_img)
 
             loop.update(len(images))
 
@@ -100,7 +105,8 @@ if __name__ == '__main__':
 
     model = load_model(args.run_id, args.model)
     hyperparams = cfg["hyperparams"][args.model]
-    dataloader = get_dataloader(cfg=cfg, split="test", batch_size=hyperparams["batch_size"] // 2)
+    batch_size = max(1, hyperparams["batch_size"] // 2)
+    dataloader = get_dataloader(cfg=cfg, split="test", batch_size=batch_size)
 
     evaluate_model(
             model=model,

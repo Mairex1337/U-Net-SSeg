@@ -1,4 +1,6 @@
 import os
+import re
+from typing import Literal
 
 import yaml
 
@@ -102,3 +104,28 @@ def get_best_checkpoint(checkpoints_dir: str) -> str:
         raise FileNotFoundError(f"No checkpoint with 'best' in the name found in {checkpoints_dir}")
 
     return best_checkpoint
+
+def get_best_loss(
+        run_dir: str,
+        initial_run_id: int
+) -> Literal['weighted_cle', 'OHEMLoss', 'mixed_cle_dice', 'dice']:
+    loss_map = {
+        0: 'weighted_cle',
+        1: 'OHEMLoss',
+        2: 'mixed_cle_dice',
+        3: 'dice'
+    }
+    best_eval = -float('inf')
+    best_loss = ''
+    for idx, run_id in enumerate(range(initial_run_id, initial_run_id + 4)):
+        log_path = os.path.join(run_dir, str(run_id), 'eval.log')
+        result_str = open(log_path, 'r').read()
+        pattern = r"Mean Accuracy:\s*(\d+\.\d*)\n.*Mean IoU:\s*(\d+\.\d*)\n.*Mean Dice \(F1\):\s*(\d+\.\d*)"
+        match = re.search(pattern, result_str)
+        metric = float(match.group(1)) + float(match.group(2)) + float(match.group(3))
+        if metric > best_eval:
+            best_eval = metric
+            best_loss = loss_map[idx]
+    
+    assert best_loss != ''
+    return best_loss
