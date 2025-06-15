@@ -31,10 +31,10 @@ As class imbalance is the key challenge for the semantic segmentation task, we d
 |Dice loss + CEL | 0.9041        | 0.6353         | 0.5575   | 0.6856         |
 <p align="center"><em>Table 1: Comparison of loss functions on segmentation metrics.</em></p>
 
-
+<br>
 
 > ✅ Our best model achieves **0.9041 accuracy** on the test set.
-🎲 A random guess would yield just **1/14 ≈ 0.0714 accuracy**.
+> 🎲 A random guess would yield just **1/14 ≈ 0.0714 accuracy**.
 
 <div align="center">
   <img src="images/training_plot.png" width="49%">
