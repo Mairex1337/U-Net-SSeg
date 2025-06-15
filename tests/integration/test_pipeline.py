@@ -10,6 +10,7 @@ from tests.utils import get_batch, patch_all_except, toy_dataset
 from torchvision.transforms import functional as F
 from torchvision.transforms.functional import to_pil_image
 
+
 @pytest.fixture(scope="function")
 def calculate_means_once(toy_dataset):
     """Fixture that calculates dataset-wide mean and std only once per test session."""
@@ -124,7 +125,7 @@ def test_random_scale_applied(cfg: Dict[str, Any]) -> None:
     """
     cfg["transforms"].update({"min_scale": 0.5, "max_scale": 1.5})
     scales = set()
-    for _ in range(5):
+    for _ in range(10):
         img, _, img_orig, _, _ = get_batch(cfg)
         img, img_orig = img[0], img_orig[0]
         h_new, _ = img.shape[1:]
