@@ -1,0 +1,30 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+# MacOS with cpu
+torch==2.7.0; sys_platform == "darwin"
+torchvision==0.22.0; sys_platform == "darwin"
+
+# Linux/Windows with cuda
+
+torch==2.7.0+cu128; sys_platform != "darwin"
+torchvision==0.22.0+cu128; sys_platform != "darwin"
+
+pyyaml
+matplotlib
+tqdm
+argparse
+torchmetrics
+pillow
+fastapi[standard]
+uvicorn
+python-multipart
+opencv-python
+gdown
+streamlit
+requests
+dotenv
+numpy
+pytest
+seaborn
+pathlib
+gdown
